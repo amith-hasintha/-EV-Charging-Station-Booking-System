@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".activities.BookingActivity"
+    tools:ignore="ExtraText,MissingClass">
+
+    <TextView
+        android:id="@+id/tvBookingTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Create New Booking"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"/>
+
+    <EditText
+        android:id="@+id/etStationId"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:hint="Station ID"
+        android:inputType="text"
+        app:layout_constraintTop_toBottomOf="@id/tvBookingTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <EditText
+        android:id="@+id/etStartTime"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="Start Time (YYYY-MM-DDTHH:MM:SSZ)"
+        android:inputType="text"
+        tools:ignore="MissingConstraints" />
+    <!-- In a real app, consider using a DateTimePicker -->
+    app:layout_constraintTop_toBottomOf="@id/etStationId"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent" />
+
+    <EditText
+        android:id="@+id/etEndTime"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="End Time (YYYY-MM-DDTHH:MM:SSZ)"
+        android:inputType="text"
+        tools:ignore="MissingConstraints" />
+    <!-- In a real app, consider using a DateTimePicker -->
+    app:layout_constraintTop_toBottomOf="@id/etStartTime"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/btnCreateBooking"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="Create Booking"
+        app:layout_constraintTop_toBottomOf="@id/etEndTime"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
