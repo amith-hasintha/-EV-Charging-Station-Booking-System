@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="Theme.EVCharging" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.EVCharging" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/emerald_green</item>
+        <!-- You might want to add colorOnPrimary here if needed by components -->
+        <!-- <item name="colorOnPrimary">@color/snow_white</item> -->
+        <item name="android:statusBarColor">@color/midnight_navy</item>
+        <item name="android:windowBackground">@color/snow_white</item>
+    </style>
 </resources>
