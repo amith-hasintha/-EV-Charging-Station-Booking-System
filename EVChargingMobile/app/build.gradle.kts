@@ -49,6 +49,22 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation("androidx.appcompat:appcompat:1.7.1")
+    implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.constraintlayout)
+    implementation("com.google.android.material:material:1.13.0") // The version might be different
+    implementation("androidx.core:core-ktx:1.10.1")
+    implementation("androidx.appcompat:appcompat:1.7.1") // Or your version
+    implementation("com.google.android.material:material:1.13.0") // Or your version
+    implementation("androidx.constraintlayout:constraintlayout:2.2.1") // Or your version
+    implementation("androidx.cardview:cardview:1.0.0") // Or your version
+    implementation("androidx.recyclerview:recyclerview:1.4.0") // Or your version    // Retrofit & OkHttp - THESE ARE LIKELY MISSING OR INCORRECT
+    implementation("com.squareup.retrofit2:retrofit:2.9.0") // Example version
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0") // Example version
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0") // Example version (OkHttp itself is usually a transitive dependency of Retrofit)
+
+    // ZXing (for QR codes) - THIS IS LIKELY MISSING OR INCORRECT
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0") // Example version
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
