@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_operator_bookings"
+        android:icon="@drawable/ic_view_list"
+        android:title="Bookings" />
+    <item
+        android:id="@+id/navigation_scan_qr"
+        android:icon="@drawable/ic_qr_code_scanner"
+        android:title="Scan QR" />
+</menu>

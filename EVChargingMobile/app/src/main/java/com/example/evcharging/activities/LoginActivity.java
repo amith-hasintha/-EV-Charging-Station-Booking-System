@@ -1,25 +1,21 @@
-/*
- * File: LoginActivity.java
- * Purpose: Login screen for users (EV Owners)
- */
 package com.example.evcharging.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
-
-import android.annotation.SuppressLint;
-import android.content.Context; // Added for SharedPreferences
-import android.content.SharedPreferences; // Added
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.content.Intent;
-import android.text.TextUtils; // Added for checking empty strings
 import android.widget.Toast;
 
-import com.example.evcharging.R; // Updated import
-import com.example.evcharging.api.ApiClient; // Updated import
-import com.example.evcharging.api.ApiService; // Updated import
+import com.example.evcharging.R;
+import com.example.evcharging.api.ApiClient;
+import com.example.evcharging.api.ApiService;
+import com.google.gson.Gson; // Import Gson for easier debugging
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,44 +26,31 @@ import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
 
-    // Renamed etNic to etEmail to reflect API change
     EditText etEmail, etPassword;
     Button btnLogin;
     TextView tvRegister;
     ApiService api;
 
-    // SharedPreferences constants
     public static final String PREFS_NAME = "EV_CHARGING_PREFS";
     public static final String AUTH_TOKEN_KEY = "AUTH_TOKEN_KEY";
-    public static final String USER_NIC_KEY = "USER_NIC_KEY";
-    public static final String USER_EMAIL_KEY = "USER_EMAIL_KEY";
+    private static final String TAG = "LoginActivity"; // For logging
 
-
-    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Initialize views - updated IDs
-        etEmail = findViewById(R.id.etEmail); // Changed from etNic and R.id.etNic
-        etPassword = findViewById(R.id.etPassword); // Changed from R.id.etPassword
-        btnLogin = findViewById(R.id.btnLogin); // Changed from R.id.btnLogin
-        tvRegister = findViewById(R.id.tvRegister); // Changed from R.id.tvRegister
+        etEmail = findViewById(R.id.etEmail);
+        etPassword = findViewById(R.id.etPassword);
+        btnLogin = findViewById(R.id.btnLogin);
+        tvRegister = findViewById(R.id.tvRegister);
+
         api = ApiClient.getApiService();
 
-        // Login button click -> call backend
         btnLogin.setOnClickListener(v -> doLogin());
-
-        // Register click -> open register activity
-        tvRegister.setOnClickListener(v -> {
-            startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
-        });
+        tvRegister.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, RegisterActivity.class)));
     }
 
-    /**
-     * Perform login by sending email and password to server
-     */
     private void doLogin() {
         String email = etEmail.getText().toString().trim();
         String pwd = etPassword.getText().toString().trim();
@@ -76,86 +59,80 @@ public class LoginActivity extends AppCompatActivity {
             Toast.makeText(this, "Enter Email and Password", Toast.LENGTH_SHORT).show();
             return;
         }
+        loginViaApi(email, pwd);
+    }
 
+    private void loginViaApi(String email, String password) {
         Map<String, String> body = new HashMap<>();
-        body.put("email", email); // API expects "email"
-        body.put("password", pwd);
+        body.put("email", email);
+        body.put("password", password);
 
-        // Call API
-        Call<Map<String, Object>> call = api.login(body);
-        call.enqueue(new Callback<Map<String, Object>>() {
+        api.login(body).enqueue(new Callback<Map<String, Object>>() {
             @Override
             public void onResponse(Call<Map<String, Object>> call, Response<Map<String, Object>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Map<String, Object> responseBody = response.body();
-                    String authToken = null;
-                    String userNic = null;
-                    String userEmail = null;
 
-                    if (responseBody.containsKey("token")) {
-                        authToken = (String) responseBody.get("token");
-                    }
+                    // For debugging: print the entire response
+                    Log.d(TAG, "Login Response: " + new Gson().toJson(responseBody));
 
-                    // Attempt to extract user details, structure might vary
+                    String authToken = (String) responseBody.get("token");
+                    int role = -1; // Default to an invalid role
+
+                    // --- THIS IS THE FINAL, CRITICAL FIX ---
+                    // Check if the "user" object exists in the response and is a Map
                     if (responseBody.containsKey("user") && responseBody.get("user") instanceof Map) {
+                        // Get the nested user map
                         Map<String, Object> userMap = (Map<String, Object>) responseBody.get("user");
-                        if (userMap.containsKey("nic")) {
-                            userNic = (String) userMap.get("nic");
+
+                        // Now, get the role from inside the user map
+                        Object roleObj = userMap.get("role");
+                        if (roleObj instanceof Number) {
+                            role = ((Number) roleObj).intValue();
                         }
-                        if (userMap.containsKey("email")) {
-                            userEmail = (String) userMap.get("email");
-                        }
-                        // You could extract other user details here if needed (firstName, lastName, etc.)
-                    } else if (responseBody.containsKey("nic")) { // Fallback if nic is top-level
-                        userNic = (String) responseBody.get("nic");
                     }
+                    // --- END OF FIX ---
 
+                    Log.d(TAG, "Extracted Role: " + role); // Log the role we found
 
-                    if (!TextUtils.isEmpty(authToken)) {
-                        // Save token and user NIC to SharedPreferences
-                        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-                        SharedPreferences.Editor editor = prefs.edit();
-                        editor.putString(AUTH_TOKEN_KEY, "Bearer " + authToken); // Store with "Bearer " prefix
-                        if (userNic != null) {
-                            editor.putString(USER_NIC_KEY, userNic);
-                        }
-                         if (userEmail != null) {
-                            editor.putString(USER_EMAIL_KEY, userEmail);
-                        }
-                        editor.apply();
-
-                        Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
-                        Intent i = new Intent(LoginActivity.this, DashboardActivity.class);
-                        // Pass NIC to DashboardActivity, it will retrieve token from SharedPreferences
-                        if (userNic != null) {
-                            i.putExtra("nic", userNic);
-                        } else if (userEmail !=null){
-                             i.putExtra("email", userEmail); // Fallback to email if NIC not present
-                        }
-                        startActivity(i);
-                        finish();
+                    if (authToken != null) {
+                        String fullToken = "Bearer " + authToken;
+                        saveAuthToken(fullToken);
+                        Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
+                        navigateToDashboardByRole(fullToken, role);
                     } else {
-                        Toast.makeText(LoginActivity.this, "Login failed: Token not found in response", Toast.LENGTH_LONG).show();
+                        Toast.makeText(LoginActivity.this, "Login failed: Token is missing.", Toast.LENGTH_LONG).show();
                     }
-
                 } else {
-                    String errorMessage = "Login failed";
-                    if (response.errorBody() != null) {
-                        try {
-                            // You might want to parse a more specific error message from the errorBody
-                            errorMessage += ": " + response.code() + " " + response.message();
-                        } catch (Exception e) {
-                            // Ignore
-                        }
-                    }
-                    Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                    Log.e(TAG, "Login failed: " + response.code() + " " + response.message());
+                    Toast.makeText(LoginActivity.this, "Login failed: Invalid credentials.", Toast.LENGTH_LONG).show();
                 }
             }
 
             @Override
             public void onFailure(Call<Map<String, Object>> call, Throwable t) {
+                Log.e(TAG, "Network error: " + t.getMessage(), t);
                 Toast.makeText(LoginActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    private void saveAuthToken(String token) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putString(AUTH_TOKEN_KEY, token).apply();
+    }
+
+    private void navigateToDashboardByRole(String authToken, int role) {
+        Intent intent;
+        if (role == 1) {
+            // Role 1 is Operator -> Go to OperatorDashboardActivity
+            intent = new Intent(LoginActivity.this, OperatorDashboardActivity.class);
+        } else {
+            // Role 2 (or any other role) is EV Owner -> Go to DashboardActivity
+            intent = new Intent(LoginActivity.this, DashboardActivity.class);
+        }
+        intent.putExtra("token", authToken);
+        startActivity(intent);
+        finish(); // Finish LoginActivity so the user can't go back
     }
 }

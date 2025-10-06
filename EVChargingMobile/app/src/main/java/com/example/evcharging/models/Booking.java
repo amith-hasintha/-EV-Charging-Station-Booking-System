@@ -1,37 +1,59 @@
-/*
- * File: Booking.java
- * Purpose: Booking model
- */
 package com.example.evcharging.models;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.ForeignKey;
+import androidx.room.Ignore;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
+import androidx.annotation.NonNull;
+
+@Entity(tableName = "bookings",
+        foreignKeys = @ForeignKey(entity = User.class,
+                                  parentColumns = "id",
+                                  childColumns = "user_id",
+                                  onDelete = ForeignKey.CASCADE),
+        indices = {@Index("user_id")})
 public class Booking {
-    public String id; // Booking ID, typically assigned by the server
-    public String stationId; // ID of the charging station
-    public String startTime; // ISO format string e.g., "2025-09-28T10:00:00Z"
-    public String endTime;   // ISO format string e.g., "2025-09-28T12:00:00Z"
-    public String status;    // e.g., "pending", "approved", "cancelled", "completed"
-    public String nic;       // User's NIC, may be present in responses or for client-side use
 
-    public Booking() {
-        // Default constructor for Gson
-    }
+    @PrimaryKey
+    @NonNull
+    @ColumnInfo(name = "booking_id")
+    public String id;
 
-    // Constructor for creating a new booking request (sent to API)
+    @ColumnInfo(name = "station_id")
+    public String stationId;
+
+    @ColumnInfo(name = "start_time")
+    public String startTime;
+
+    @ColumnInfo(name = "end_time")
+    public String endTime;
+
+    @ColumnInfo(name = "status")
+    public String status;
+
+    @ColumnInfo(name = "user_id")
+    public String userId;
+
+    // This constructor is used by Room
+    public Booking() {}
+
+    // This constructor is used by BookingActivity.java
+    @Ignore // We use @Ignore to tell Room to not use this constructor
     public Booking(String stationId, String startTime, String endTime) {
         this.stationId = stationId;
         this.startTime = startTime;
         this.endTime = endTime;
     }
 
-    // Full constructor (typically for data received from server)
-    public Booking(String id, String stationId, String startTime, String endTime, String status, String nic) {
+    // This full constructor can be used for creating objects from API responses or other parts of the app
+    public Booking(@NonNull String id, String stationId, String startTime, String endTime, String status, String userId) {
         this.id = id;
         this.stationId = stationId;
         this.startTime = startTime;
         this.endTime = endTime;
         this.status = status;
-        this.nic = nic;
+        this.userId = userId;
     }
-
-    // Consider adding getters and setters if you prefer them over public fields
 }

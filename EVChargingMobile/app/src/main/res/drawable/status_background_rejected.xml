@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- Use the red_error color for 'rejected' status -->
+    <solid android:color="@color/red_error" />
+
+    <!-- Make the corners rounded to create a pill shape -->
+    <corners android:radius="16dp" />
+
+</shape>

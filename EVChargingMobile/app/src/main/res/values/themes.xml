@@ -1,10 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <style name="Theme.EVCharging" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/emerald_green</item>
-        <!-- You might want to add colorOnPrimary here if needed by components -->
-        <!-- <item name="colorOnPrimary">@color/snow_white</item> -->
-        <item name="android:statusBarColor">@color/midnight_navy</item>
-        <item name="android:windowBackground">@color/snow_white</item>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.EVChargingMobile" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
+
+    <!--
+        THIS IS THE FIX:
+        Define the application theme that your AndroidManifest.xml is looking for.
+        It inherits from the Base theme.
+    -->
+    <style name="Theme.EVChargingMobile" parent="Base.Theme.EVChargingMobile" />
+
 </resources>

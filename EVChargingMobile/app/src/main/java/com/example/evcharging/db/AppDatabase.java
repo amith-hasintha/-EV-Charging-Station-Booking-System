@@ -1,31 +1,37 @@
-/*
- * File: AppDatabase.java
- * Purpose: Simple SQLite helper for user storage
- */
 package com.example.evcharging.db;
 
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
+import androidx.room.Database;
+import androidx.room.Room;
+import androidx.room.RoomDatabase;
 
-public class AppDatabase extends SQLiteOpenHelper {
-    public static final String DB_NAME = "evcharging.db";
-    public static final int DB_VERSION = 1;
+import com.example.evcharging.dao.BookingDao;
+import com.example.evcharging.dao.UserDao;
+import com.example.evcharging.models.Booking;
+import com.example.evcharging.models.User;
 
-    public AppDatabase(Context context){
-        super(context, DB_NAME, null, DB_VERSION);
-    }
+// Add your entities to the entities array
+@Database(entities = {User.class, Booking.class}, version = 1, exportSchema = false)
+public abstract class AppDatabase extends RoomDatabase {
 
-    @Override
-    public void onCreate(SQLiteDatabase db) {
-        // Create user table (local cache of EV owner)
-        db.execSQL("CREATE TABLE IF NOT EXISTS users (nic TEXT PRIMARY KEY, name TEXT, email TEXT, phone TEXT, role TEXT, active INTEGER)");
-    }
+    // Define your DAOs here
+    public abstract UserDao userDao();
+    public abstract BookingDao bookingDao();
 
-    @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // For now drop and recreate
-        db.execSQL("DROP TABLE IF EXISTS users");
-        onCreate(db);
+    private static volatile AppDatabase INSTANCE;
+
+    public static AppDatabase getDatabase(final Context context) {
+        if (INSTANCE == null) {
+            synchronized (AppDatabase.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
+                                    AppDatabase.class, "ev_charging_db")
+                            // Add migrations here if you change the schema in the future
+                            .fallbackToDestructiveMigration()
+                            .build();
+                }
+            }
+        }
+        return INSTANCE;
     }
 }

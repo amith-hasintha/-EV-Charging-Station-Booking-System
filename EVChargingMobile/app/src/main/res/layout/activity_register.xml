@@ -5,83 +5,113 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    tools:context=".activities.RegisterActivity"><TextView
-    android:id="@+id/tvRegisterTitle"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="Register New Account"
-    android:textSize="24sp"
-    android:textStyle="bold"
-    app:layout_constraintTop_toTopOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintEnd_toEndOf="parent"
-    android:layout_marginTop="16dp"/>
+    tools:context=".activities.RegisterActivity">
+
+    <!-- I have commented out the ImageView that was causing the build to fail.
+         You can add an image named 'register_logo.png' (or .jpg, .xml, etc.)
+         to your res/drawable/ folder and then uncomment this block. -->
+    <!--
+    <ImageView
+        android:id="@+id/imageView3"
+        android:layout_width="137dp"
+        android:layout_height="74dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@id/tvRegisterTitle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/register_logo" />
+    -->
+
+    <TextView
+        android:id="@+id/tvRegisterTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:text="Register New Account"
+        android:textColor="#140F0F"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
         android:id="@+id/etNic"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="16dp"
         android:hint="NIC (National ID)"
         android:inputType="text"
-        app:layout_constraintTop_toBottomOf="@id/tvRegisterTitle"
+        android:textColor="#140F0F"
+        android:textColorHint="#646464"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/tvRegisterTitle" />
 
     <EditText
         android:id="@+id/etFirstName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:hint="First Name"
         android:inputType="textPersonName"
-        app:layout_constraintTop_toBottomOf="@id/etNic"
+        android:textColor="#140F0F"
+        android:textColorHint="#646464"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/etNic" />
 
     <EditText
         android:id="@+id/etLastName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:hint="Last Name"
         android:inputType="textPersonName"
-        app:layout_constraintTop_toBottomOf="@id/etFirstName"
+        android:textColor="#140F0F"
+        android:textColorHint="#646464"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/etFirstName" />
 
     <EditText
         android:id="@+id/etEmail"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:hint="Email"
         android:inputType="textEmailAddress"
-        app:layout_constraintTop_toBottomOf="@id/etLastName"
+        android:textColor="#140F0F"
+        android:textColorHint="#646464"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/etLastName" />
 
     <EditText
         android:id="@+id/etPassword"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:hint="Password"
         android:inputType="textPassword"
-        app:layout_constraintTop_toBottomOf="@id/etEmail"
+        android:textColor="#140F0F"
+        android:textColorHint="#646464"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/etEmail" />
 
     <EditText
         android:id="@+id/etPhoneNumber"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:hint="Phone Number"
         android:inputType="phone"
-        app:layout_constraintTop_toBottomOf="@id/etPassword"
+        android:textColor="#140F0F"
+        android:textColorHint="#646464"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/etPassword" />
 
     <Button
         android:id="@+id/btnRegister"
@@ -89,10 +119,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="Register"
-        app:layout_constraintTop_toBottomOf="@id/etPhoneNumber"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/etPhoneNumber" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

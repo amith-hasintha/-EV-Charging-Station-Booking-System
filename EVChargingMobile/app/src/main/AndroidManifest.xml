@@ -1,28 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="com.example.evcharging"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-feature
-        android:name="android.hardware.camera"
-        android:required="false" />
-
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.CAMERA"/>
+    <!-- Permissions for Internet, Location and Maps -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:allowBackup="true"
-        android:label="EV Charging"
-        android:theme="@style/Theme.EVCharging">
-        <activity android:name=".activities.RegisterActivity"/>
-        <activity android:name=".activities.BookingActivity"/>
-        <activity android:name=".activities.QRScannerActivity"/>
-        <activity android:name=".activities.DashboardActivity"/>
-        <activity android:name=".activities.LoginActivity"
-            android:exported="true">
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.EVChargingMobile"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="31">
+
+        <!-- ****************************************************** -->
+        <!-- Your Google Maps API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCgV1SfYPRvKPqf0I1H6D3UOh_EjfImOEw" />
+        <!-- ****************************************************** -->
+
+        <!-- THE FIX: Make SplashActivity the new starting point of the app. -->
+        <activity
+            android:name=".activities.SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.NoActionBar"> <!-- Use a theme without a title bar -->
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- LoginActivity is no longer the starting point. -->
+        <activity
+            android:name=".activities.LoginActivity"
+            android:exported="false" />
+
+        <!-- All other activities remain as they were. -->
+        <activity android:name=".activities.RegisterActivity" />
+        <activity android:name=".activities.DashboardActivity" />
+        <activity android:name=".activities.ProfileActivity" />
+        <activity android:name=".activities.OperatorDashboardActivity" />
+        <activity android:name=".activities.ConfirmBookingActivity" />
+        <activity
+            android:name=".activities.QRScannerActivity"
+            android:screenOrientation="portrait"
+            tools:replace="screenOrientation"/>
+
     </application>
 </manifest>

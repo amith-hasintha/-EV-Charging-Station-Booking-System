@@ -1,88 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    android:background="@color/snow_white"
-    tools:ignore="MissingClass">
+    android:background="#F5F5F5"
+    tools:context=".activities.DashboardActivity">
 
-    <TextView
-        android:id="@+id/tvHeading"
-        android:text="Dashboard"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="@color/charcoal"
-        android:layout_width="wrap_content"
+    <!-- Top App Bar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:ignore="MissingConstraints" />
+        app:layout_constraintTop_toTopOf="parent">
 
-    <!-- Cards row -->
-    <LinearLayout
-        android:id="@+id/cardRow"
-        android:orientation="horizontal"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/tvHeading"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:weightSum="3">
+        <androidx.appcompat.widget.Toolbar
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/midnight_navy"
+            app:title="Dashboard"
+            app:titleTextColor="@color/snow_white" />
 
-        <TextView
-            android:id="@+id/tvPending"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:layout_width="0dp"
-            android:layout_height="80dp"
-            android:text="2\nPending"
-            android:textColor="@color/snow_white"
-            android:background="@color/amber_orange"
-            android:padding="8dp"/>
-        <TextView
-            android:id="@+id/tvApproved"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:layout_width="0dp"
-            android:layout_height="80dp"
-            android:text="5\nApproved"
-            android:textColor="@color/snow_white"
-            android:background="@color/cyan_blue"
-            android:padding="8dp"
-            android:layout_marginStart="8dp"/>
-        <TextView
-            android:id="@+id/tvNearby"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:layout_width="0dp"
-            android:layout_height="80dp"
-            android:text="1\nNearby"
-            android:textColor="@color/snow_white"
-            android:background="@color/emerald"
-            android:padding="8dp"
-            android:layout_marginStart="8dp"/>
+    </com.google.android.material.appbar.AppBarLayout>
 
-        <Button
-            android:id="@+id/btnDeactivateAccount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Deactivate Account"        app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="16dp"/>
+    <!-- Profile Icon on Toolbar -->
+    <ImageView
+        android:id="@+id/ivProfile"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="16dp"
+        android:src="@drawable/ic_account_circle"
+        app:layout_constraintBottom_toBottomOf="@+id/appBarLayout"
+        app:layout_constraintEnd_toEndOf="@+id/appBarLayout"
+        app:layout_constraintTop_toTopOf="@+id/appBarLayout"
+        app:tint="@color/snow_white" />
 
-    </LinearLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvBookings"
+    <!-- This FrameLayout is the container that will display your different fragments -->
+    <FrameLayout
+        android:id="@+id/fragment_container"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/cardRow"
+        app:layout_constraintTop_toBottomOf="@+id/appBarLayout"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Bottom Navigation Bar -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?android:attr/windowBackground"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginTop="16dp"/>
+        app:menu="@menu/bottom_nav_menu"
+
+    app:itemIconTint="@color/bottom_nav_icon_tint_selector"
+    app:itemTextColor="@color/bottom_nav_icon_tint_selector" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- Use an orange color for 'pending' status -->
+    <solid android:color="@color/orange_soda" />
+
+    <!-- Make the corners rounded to create a pill shape -->
+    <corners android:radius="16dp" />
+
+</shape>

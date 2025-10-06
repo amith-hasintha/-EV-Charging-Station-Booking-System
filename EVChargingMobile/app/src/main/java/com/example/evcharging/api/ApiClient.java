@@ -10,7 +10,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 
 public class ApiClient {
-    private static final String BASE_URL = "http://localhost:5082/"; // Updated BASE_URL
+    // This URL points to your publicly hosted backend.
+    private static final String BASE_URL = "http://13.62.48.213:5000/";
     private static ApiService apiService;
 
     public static ApiService getApiService(){

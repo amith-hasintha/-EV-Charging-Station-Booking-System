@@ -1,45 +1,51 @@
-/*
- * Author: YourName
- * File: User.java
- * Purpose: Model for user (EV Owner / Operator)
- */
-
 package com.example.evcharging.models;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+import androidx.annotation.NonNull;
+
+@Entity(tableName = "users")
 public class User {
-    public String nic; // primary key
-    public String firstName; // Changed from 'name'
-    public String lastName;  // Added
+
+    @PrimaryKey
+    @NonNull
+    @ColumnInfo(name = "id")
+    public String nic; // National ID Card - used as primary key
+
+    @ColumnInfo(name = "first_name")
+    public String firstName;
+
+    @ColumnInfo(name = "last_name")
+    public String lastName;
+
+    @ColumnInfo(name = "email")
     public String email;
-    public String password; // Added for registration
-    public int role;       // Changed from String to int
-    public String phoneNumber; // Changed from 'phone'
+
+    @ColumnInfo(name = "password")
+    public String password; // Note: Storing plain text passwords is not secure.
+
+    @ColumnInfo(name = "role")
+    public int role;
+
+    @ColumnInfo(name = "phone_number")
+    public String phoneNumber;
+
+    @ColumnInfo(name = "is_active")
     public boolean active;
 
+    // Room requires a public, no-argument constructor
     public User() {}
 
-    // Constructor for registration
-    public User(String nic, String firstName, String lastName, String email, String password, int role, String phoneNumber) {
+    // You can keep other constructors for convenience
+    public User(@NonNull String nic, String firstName, String lastName, String email, String password, int role, String phoneNumber) {
         this.nic = nic;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
-        this.password = password; // Should generally be handled securely, not stored long-term as plain text
+        this.password = password;
         this.role = role;
         this.phoneNumber = phoneNumber;
-        this.active = true; // Default to active on creation, or as per API response
+        this.active = true;
     }
-
-    // Optional: Constructor for user data received from server (without password)
-    public User(String nic, String firstName, String lastName, String email, int role, String phoneNumber, boolean active) {
-        this.nic = nic;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.role = role;
-        this.phoneNumber = phoneNumber;
-        this.active = active;
-    }
-
-    // Getters and setters can be added if preferred over public fields
 }
