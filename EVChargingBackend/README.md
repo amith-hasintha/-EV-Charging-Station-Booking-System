@@ -42,16 +42,31 @@ cd EVChargingBackend
 dotnet restore
 ```
 
-### 3. Configure Environment
-The `.env` file is already configured with your MongoDB connection string:
-```
-MONGODB_CONNECTION_STRING=mongodb+srv://Amith:Amith123@agroprolk.6cgbg.mongodb.net/EVChargingDB?retryWrites=true&w=majority&appName=AgroProLK
-MONGODB_DATABASE_NAME=EVChargingDB
-JWT_KEY=5f8f8c9e-4d3b-4c2a-9f7b-2e5f8f8c9e4d
-JWT_ISSUER=EVChargingAPI
-JWT_AUDIENCE=EVChargingClients
-JWT_EXPIRY_MINUTES=60
-```
+### 3. Configure Environment (SECURE) 🔒
+**IMPORTANT**: For security, all sensitive configuration is stored in environment variables.
+
+1. **Copy the environment template:**
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Edit the `.env` file with your actual values:**
+   ```bash
+   MONGODB_CONNECTION_STRING=mongodb+srv://username:password@cluster.mongodb.net/EVChargingDB?retryWrites=true&w=majority&appName=YourApp
+   MONGODB_DATABASE_NAME=EVChargingDB
+   JWT_KEY=your-super-secret-jwt-key-here-make-it-long-and-random
+   JWT_ISSUER=EVChargingAPI
+   JWT_AUDIENCE=EVChargingClients
+   JWT_EXPIRY_MINUTES=60
+   ```
+
+3. **Security Features:**
+   - ✅ **No credentials in source code** - All sensitive data in `.env` file
+   - ✅ **`.env` file ignored by Git** - Never committed to repository
+   - ✅ **Environment variable fallback** - Production-ready configuration
+   - ✅ **Template provided** - `.env.example` for easy setup
+
+**⚠️ NEVER commit the `.env` file to version control!**
 
 ### 4. Build the Project
 ```bash
@@ -331,12 +346,17 @@ Authorization: Bearer <operator-jwt-token>
 - **Bookings**: Booking records with QR codes and status tracking
 - **Notifications**: User notifications with types, priorities, and read status
 
-## Security Features
-- JWT-based authentication
-- Role-based authorization
-- Password hashing with BCrypt
-- Environment variable configuration
-- CORS enabled for frontend integration
+## Security Features 🔒
+- **JWT-based authentication** with configurable expiry
+- **Role-based authorization** (Backoffice, Station Operator, EV Owner)
+- **Password hashing with BCrypt** for secure credential storage
+- **Environment variable configuration** - No credentials in source code
+- **Secure credential management** - All sensitive data in `.env` file
+- **Git security** - `.env` file automatically ignored by version control
+- **Production-ready secrets** - Environment variable fallback support
+- **CORS enabled** for secure frontend integration
+- **Input validation** and sanitization throughout the API
+- **Centralized error handling** prevents information leakage
 
 ## Error Handling
 Global exception middleware handles:
