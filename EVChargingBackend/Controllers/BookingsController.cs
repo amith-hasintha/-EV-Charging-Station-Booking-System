@@ -50,7 +50,7 @@ namespace EVChargingBackend.Controllers
             
             if (string.IsNullOrEmpty(ownerNic))
             {
-                return BadRequest("Invalid user token - NIC not found");
+                return BadRequest("Invalid user token");
             }
 
             _logger.LogInformation("Creating booking for station {StationId} by user {OwnerNIC}", createDto.StationId, ownerNic);

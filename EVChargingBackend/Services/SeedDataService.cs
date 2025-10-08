@@ -72,7 +72,7 @@ namespace EVChargingBackend.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred during database seeding");
-                throw;
+                throw new InvalidOperationException("An error occurred in SeedDataService.SeedDataAsync. See inner exception for details.", ex);
             }
         }
 
