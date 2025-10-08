@@ -76,6 +76,7 @@ namespace EVChargingBackend.Services
                 Email = registerDto.Email,
                 Password = hashedPassword,
                 Role = registerDto.Role,
+                StationId = (int)registerDto.Role == 1 ? registerDto.StationId : null,
                 PhoneNumber = registerDto.PhoneNumber,
                 IsActive = true
             };
@@ -119,6 +120,11 @@ namespace EVChargingBackend.Services
             var token = GenerateJwtToken(userResponse);
 
             _logger.LogInformation("User logged in successfully: {Email}", loginDto.Email);
+
+            if (user.Role == UserRole.StationOperator)
+            {
+                userResponse.StationId = user.StationId;
+            }
 
             return new LoginResponseDto
             {
@@ -173,6 +179,7 @@ namespace EVChargingBackend.Services
                 LastName = user.LastName,
                 Email = user.Email,
                 Role = user.Role,
+                StationId = user.StationId,
                 IsActive = user.IsActive,
                 PhoneNumber = user.PhoneNumber,
                 CreatedAt = user.CreatedAt

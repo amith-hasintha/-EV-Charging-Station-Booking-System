@@ -57,6 +57,7 @@ namespace EVChargingBackend.Controllers
         /// </summary>
         /// <returns>List of all charging stations</returns>
         [HttpGet]
+        [AllowAnonymous] // allow non-logged-in users
         public async Task<ActionResult<List<StationResponseDto>>> GetAllStations()
         {
             _logger.LogInformation("Fetching all charging stations");

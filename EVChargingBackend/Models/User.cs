@@ -38,6 +38,10 @@ namespace EVChargingBackend.Models
         [BsonElement("role")]
         public UserRole Role { get; set; }
 
+        [BsonElement("stationId")]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? StationId { get; set; }
+
         [BsonElement("isActive")]
         public bool IsActive { get; set; } = true;
 

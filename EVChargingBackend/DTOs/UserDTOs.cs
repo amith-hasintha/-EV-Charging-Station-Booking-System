@@ -36,6 +36,8 @@ namespace EVChargingBackend.DTOs
         [Required]
         public UserRole Role { get; set; }
 
+        public string? StationId { get; set; } 
+
         public string? PhoneNumber { get; set; }
     }
 
@@ -76,6 +78,8 @@ namespace EVChargingBackend.DTOs
         public bool IsActive { get; set; }
         public string? PhoneNumber { get; set; }
         public DateTime CreatedAt { get; set; }
+
+        public string? StationId { get; set; }
     }
 
     /// <summary>
