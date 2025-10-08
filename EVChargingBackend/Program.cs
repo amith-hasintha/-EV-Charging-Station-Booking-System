@@ -167,11 +167,11 @@ app.UseAuthorization();
 // Map controllers
 app.MapControllers();
 
-// Seed initial data - Temporarily disabled due to schema mismatch
-// using (var scope = app.Services.CreateScope())
-// {
-//     var seedService = scope.ServiceProvider.GetRequiredService<ISeedDataService>();
-//     await seedService.SeedDataAsync();
-// }
+// Seed initial data with schema mismatch handling  
+using (var scope = app.Services.CreateScope())
+{
+    var seedService = scope.ServiceProvider.GetRequiredService<ISeedDataService>();
+    await seedService.SeedDataAsync();
+}
 
-app.Run();
+await app.RunAsync();

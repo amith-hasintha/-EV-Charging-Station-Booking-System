@@ -48,5 +48,10 @@ namespace EVChargingBackend.Config
         /// Gets the Notifications collection
         /// </summary>
         public IMongoCollection<Notification> Notifications => _database.GetCollection<Notification>("Notifications");
+
+        /// <summary>
+        /// Gets the MongoDB database instance
+        /// </summary>
+        public IMongoDatabase Database => _database;
     }
 }
