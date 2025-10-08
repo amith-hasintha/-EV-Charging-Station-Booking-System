@@ -43,5 +43,10 @@ namespace EVChargingBackend.Config
         /// Gets the Bookings collection
         /// </summary>
         public IMongoCollection<Booking> Bookings => _database.GetCollection<Booking>("Bookings");
+
+        /// <summary>
+        /// Gets the Notifications collection
+        /// </summary>
+        public IMongoCollection<Notification> Notifications => _database.GetCollection<Notification>("Notifications");
     }
 }

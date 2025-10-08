@@ -48,15 +48,23 @@ namespace EVChargingBackend.Services
         {
             try
             {
-                // Check if data already exists
-                var existingUsers = await _userRepository.GetAllAsync();
-                if (existingUsers.Any())
-                {
-                    _logger.LogInformation("Data already exists, skipping seed");
-                    return;
-                }
-
                 _logger.LogInformation("Starting database seeding...");
+
+                // Try to check if data already exists, but handle schema mismatch gracefully
+                try
+                {
+                    var existingUsers = await _userRepository.GetAllAsync();
+                    if (existingUsers.Any())
+                    {
+                        _logger.LogInformation("Data already exists, skipping seed");
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning("Error checking existing data (possible schema mismatch): {Error}. Proceeding with fresh seed...", ex.Message);
+                    // Continue with seeding - this will create proper schema
+                }
 
                 // Seed Users
                 await SeedUsersAsync();

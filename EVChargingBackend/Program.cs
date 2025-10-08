@@ -43,13 +43,18 @@ builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IChargingStationRepository, ChargingStationRepository>();
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
 // Register services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IChargingStationService, ChargingStationService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<ISeedDataService, SeedDataService>();
+
+// Register background services
+builder.Services.AddHostedService<NotificationBackgroundService>();
 
 // Add controllers
 builder.Services.AddControllers();
@@ -162,11 +167,11 @@ app.UseAuthorization();
 // Map controllers
 app.MapControllers();
 
-// Seed initial data
-using (var scope = app.Services.CreateScope())
-{
-    var seedService = scope.ServiceProvider.GetRequiredService<ISeedDataService>();
-    await seedService.SeedDataAsync();
-}
+// Seed initial data - Temporarily disabled due to schema mismatch
+// using (var scope = app.Services.CreateScope())
+// {
+//     var seedService = scope.ServiceProvider.GetRequiredService<ISeedDataService>();
+//     await seedService.SeedDataAsync();
+// }
 
 app.Run();

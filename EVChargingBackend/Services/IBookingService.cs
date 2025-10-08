@@ -73,5 +73,13 @@ namespace EVChargingBackend.Services
         /// <param name="ownerNic">Owner NIC from JWT token</param>
         /// <returns>Success status</returns>
         Task<bool> CancelBookingAsync(string id, string ownerNic);
+
+        /// <summary>
+        /// Cancels booking by operator (station operator or backoffice)
+        /// </summary>
+        /// <param name="bookingId">Booking ID</param>
+        /// <param name="reason">Cancellation reason</param>
+        /// <returns>Success status</returns>
+        Task<bool> CancelBookingByOperatorAsync(string bookingId, string reason = "");
     }
 }

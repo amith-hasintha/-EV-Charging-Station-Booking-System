@@ -64,4 +64,13 @@ namespace EVChargingBackend.DTOs
         [Required]
         public string BookingId { get; set; } = string.Empty;
     }
+
+    /// <summary>
+    /// DTO for booking cancellation by operator
+    /// </summary>
+    public class CancelBookingByOperatorDto
+    {
+        [StringLength(500)]
+        public string Reason { get; set; } = string.Empty;
+    }
 }

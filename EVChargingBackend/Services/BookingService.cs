@@ -19,6 +19,7 @@ namespace EVChargingBackend.Services
     {
         private readonly IBookingRepository _bookingRepository;
         private readonly IChargingStationRepository _stationRepository;
+        private readonly INotificationService _notificationService;
         private readonly ILogger<BookingService> _logger;
 
         /// <summary>
@@ -26,14 +27,17 @@ namespace EVChargingBackend.Services
         /// </summary>
         /// <param name="bookingRepository">Booking repository for data operations</param>
         /// <param name="stationRepository">Station repository for validation</param>
+        /// <param name="notificationService">Notification service for sending notifications</param>
         /// <param name="logger">Logger for service operations</param>
         public BookingService(
             IBookingRepository bookingRepository,
             IChargingStationRepository stationRepository,
+            INotificationService notificationService,
             ILogger<BookingService> logger)
         {
             _bookingRepository = bookingRepository;
             _stationRepository = stationRepository;
+            _notificationService = notificationService;
             _logger = logger;
         }
 
@@ -273,6 +277,28 @@ namespace EVChargingBackend.Services
             if (result)
             {
                 _logger.LogInformation("Booking confirmed: {BookingId}", bookingId);
+                
+                // Send confirmation notification to the EV owner
+                try
+                {
+                    var station = await _stationRepository.GetByIdAsync(booking.StationId);
+                    var stationName = station?.Name ?? "Charging Station";
+                    
+                    await _notificationService.CreateBookingConfirmationNotificationAsync(
+                        booking.OwnerNIC,
+                        bookingId,
+                        stationName,
+                        booking.StartTime,
+                        booking.EndTime
+                    );
+                    
+                    _logger.LogInformation("Confirmation notification sent for booking: {BookingId}", bookingId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send confirmation notification for booking: {BookingId}", bookingId);
+                    // Don't fail the booking confirmation if notification fails
+                }
             }
 
             return result;
@@ -317,6 +343,82 @@ namespace EVChargingBackend.Services
                 // Return the slot to available pool
                 await _stationRepository.UpdateAvailableSlotsAsync(booking.StationId, 1);
                 _logger.LogInformation("Booking cancelled: {BookingId}", id);
+                
+                // Send cancellation notification to the EV owner
+                try
+                {
+                    var station = await _stationRepository.GetByIdAsync(booking.StationId);
+                    var stationName = station?.Name ?? "Charging Station";
+                    
+                    await _notificationService.CreateBookingCancellationNotificationAsync(
+                        booking.OwnerNIC,
+                        id,
+                        stationName,
+                        "Cancelled by user"
+                    );
+                    
+                    _logger.LogInformation("Cancellation notification sent for booking: {BookingId}", id);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send cancellation notification for booking: {BookingId}", id);
+                    // Don't fail the booking cancellation if notification fails
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Cancels booking by operator (station operator or backoffice)
+        /// </summary>
+        /// <param name="bookingId">Booking ID</param>
+        /// <param name="reason">Cancellation reason</param>
+        /// <returns>Success status</returns>
+        public async Task<bool> CancelBookingByOperatorAsync(string bookingId, string reason = "")
+        {
+            var booking = await _bookingRepository.GetByIdAsync(bookingId);
+            if (booking == null)
+            {
+                throw new KeyNotFoundException("Booking not found");
+            }
+
+            // Only active or confirmed bookings can be cancelled
+            if (booking.Status != BookingStatus.Active && booking.Status != BookingStatus.Confirmed)
+            {
+                throw new ArgumentException("Only active or confirmed bookings can be cancelled");
+            }
+
+            var result = await _bookingRepository.CancelBookingAsync(bookingId);
+            
+            if (result)
+            {
+                // Return the slot to available pool
+                await _stationRepository.UpdateAvailableSlotsAsync(booking.StationId, 1);
+                _logger.LogInformation("Booking cancelled by operator: {BookingId}, Reason: {Reason}", bookingId, reason);
+                
+                // Send cancellation notification to the EV owner
+                try
+                {
+                    var station = await _stationRepository.GetByIdAsync(booking.StationId);
+                    var stationName = station?.Name ?? "Charging Station";
+                    
+                    var fullReason = string.IsNullOrEmpty(reason) ? "Cancelled by station operator" : $"Cancelled by station operator - {reason}";
+                    
+                    await _notificationService.CreateBookingCancellationNotificationAsync(
+                        booking.OwnerNIC,
+                        bookingId,
+                        stationName,
+                        fullReason
+                    );
+                    
+                    _logger.LogInformation("Cancellation notification sent for booking: {BookingId}", bookingId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send cancellation notification for booking: {BookingId}", bookingId);
+                    // Don't fail the booking cancellation if notification fails
+                }
             }
 
             return result;

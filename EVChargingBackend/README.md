@@ -7,12 +7,14 @@ This is a complete ASP.NET Core 8 Web API backend for an EV Charging Station Boo
 - **User Management** with role-based authorization (Backoffice, Station Operator, EV Owner)
 - **Charging Station Management** with AC/DC types and slot management
 - **Booking Management** with business rules and QR code generation
+- **Notification System** with real-time notifications for booking confirmations, cancellations, and reminders
 - **JWT Authentication & Authorization**
 - **MongoDB Integration** with repository pattern
 - **Swagger Documentation** with JWT support
 - **Centralized Error Handling**
 - **Environment Configuration** with .env file
 - **Sample Data Seeding**
+- **Background Services** for automated notification reminders and cleanup
 
 ## Architecture
 - **Controllers**: Handle HTTP requests and responses
@@ -123,6 +125,35 @@ The application automatically seeds sample data on first run:
 - `PUT /api/bookings/{id}` - Update booking (EV Owner only, own bookings)
 - `POST /api/bookings/{id}/confirm` - Confirm booking (Operator only)
 - `POST /api/bookings/{id}/cancel` - Cancel booking (EV Owner only, own bookings)
+- `POST /api/bookings/{id}/cancel-by-operator` - Cancel booking with reason (Operator only)
+
+### Notifications 🔔
+- `POST /api/notifications` - Create notification (Backoffice/Operator only)
+- `POST /api/notifications/bulk` - Create bulk notifications (Backoffice only)
+- `GET /api/notifications/my-notifications` - Get current user's notifications
+  - Query params: `includeRead=true&limit=50&offset=0`
+- `GET /api/notifications/unread` - Get unread notifications for current user
+- `GET /api/notifications/by-type/{type}` - Get notifications by type (BookingConfirmation, BookingCancellation, BookingReminder, etc.)
+- `GET /api/notifications/{id}` - Get notification by ID
+- `GET /api/notifications/summary` - Get notification summary/statistics
+- `POST /api/notifications/mark-read` - Mark specific notifications as read
+- `POST /api/notifications/mark-all-read` - Mark all notifications as read
+- `DELETE /api/notifications/{id}` - Delete notification
+- `POST /api/notifications/cleanup-expired` - Cleanup expired notifications (Backoffice only)
+
+#### Notification Types
+- **BookingConfirmation** - Sent when operator confirms a booking
+- **BookingCancellation** - Sent when booking is cancelled (by user or operator)
+- **BookingReminder** - Automatically sent 2 hours before booking starts
+- **StationUpdate** - Station status or information updates
+- **SystemAlert** - System-wide alerts and maintenance notices
+- **PaymentConfirmation** - Payment processing confirmations
+
+#### Notification Priority Levels
+- **Critical** - Urgent system alerts requiring immediate attention
+- **High** - Important notifications like booking confirmations
+- **Normal** - Regular notifications and reminders (default)
+- **Low** - Informational notifications
 
 ## Business Rules
 
@@ -144,6 +175,19 @@ The application automatically seeds sample data on first run:
 - Automatic available slot calculation
 - AC/DC type support
 
+### Notifications
+- **Automatic Notifications**: System automatically sends notifications for:
+  - Booking confirmations (when operator confirms)
+  - Booking cancellations (user or operator initiated)
+  - Booking reminders (2 hours before start time)
+- **User Isolation**: Users can only view/manage their own notifications
+- **Expiration**: Notifications can have expiration dates for automatic cleanup
+- **Background Processing**: Automated reminder system runs every 30 minutes
+- **Cleanup**: Expired notifications cleaned up every 6 hours
+- **Metadata Support**: Rich context data for notifications (station names, times, etc.)
+- **Priority System**: Critical, High, Normal, Low priority levels
+- **Bulk Operations**: Support for bulk notification creation and management
+
 ## Testing with Swagger
 
 1. Start the application (`dotnet run`)
@@ -153,6 +197,58 @@ The application automatically seeds sample data on first run:
 5. Click "Authorize" button in Swagger UI
 6. Enter: `Bearer <your-jwt-token>`
 7. Test the endpoints based on your role
+
+## Notification System Workflow 🔔
+
+### Automatic Notification Scenarios
+
+#### 1. Booking Confirmation Flow
+```
+EV Owner creates booking → Booking status: Active
+    ↓
+Station Operator calls: POST /api/bookings/{id}/confirm
+    ↓
+System automatically:
+  - Updates booking status to Confirmed
+  - Creates confirmation notification for EV Owner
+  - Notification includes: station name, booking times, QR code reference
+    ↓
+EV Owner receives notification via: GET /api/notifications/my-notifications
+```
+
+#### 2. Booking Cancellation Flow
+```
+Option A - User Cancellation:
+EV Owner calls: POST /api/bookings/{id}/cancel
+    ↓
+System automatically sends cancellation notification
+
+Option B - Operator Cancellation:
+Operator calls: POST /api/bookings/{id}/cancel-by-operator
+    ↓
+System automatically sends cancellation notification with reason
+```
+
+#### 3. Automatic Reminder System
+```
+Background Service (runs every 30 minutes):
+    ↓
+Checks for confirmed bookings starting within 2 hours
+    ↓
+Sends reminder notifications to EV Owners
+    ↓
+Prevents duplicate reminders for same booking
+```
+
+### Testing Notification Flow
+
+1. **Create an EV Owner account** and login
+2. **Create a booking** using EV Owner credentials
+3. **Login as Station Operator** 
+4. **Confirm the booking**: `POST /api/bookings/{id}/confirm`
+5. **Login back as EV Owner**
+6. **Check notifications**: `GET /api/notifications/my-notifications`
+7. **Verify notification received** with booking confirmation details
 
 ## Sample API Usage
 
@@ -176,10 +272,64 @@ Authorization: Bearer <jwt-token>
 }
 ```
 
+### 3. Confirm Booking (Station Operator)
+```bash
+POST /api/bookings/{bookingId}/confirm
+Authorization: Bearer <operator-jwt-token>
+# This automatically sends confirmation notification to EV Owner
+```
+
+### 4. Get My Notifications (EV Owner)
+```bash
+GET /api/notifications/my-notifications?includeRead=true&limit=20
+Authorization: Bearer <ev-owner-jwt-token>
+# Response includes booking confirmation notifications
+```
+
+### 5. Get Unread Notifications
+```bash
+GET /api/notifications/unread
+Authorization: Bearer <jwt-token>
+# Returns only unread notifications
+```
+
+### 6. Mark Notifications as Read
+```bash
+POST /api/notifications/mark-read
+Authorization: Bearer <jwt-token>
+{
+  "notificationIds": ["notification-id-1", "notification-id-2"]
+}
+```
+
+### 7. Cancel Booking with Operator Reason
+```bash
+POST /api/bookings/{bookingId}/cancel-by-operator
+Authorization: Bearer <operator-jwt-token>
+{
+  "reason": "Station maintenance required"
+}
+# This automatically sends cancellation notification to EV Owner
+```
+
+### 8. Create Custom Notification (Operator)
+```bash
+POST /api/notifications
+Authorization: Bearer <operator-jwt-token>
+{
+  "recipientNIC": "123456789V",
+  "title": "Station Maintenance Alert",
+  "message": "Your preferred charging station will be under maintenance tomorrow",
+  "type": "StationUpdate",
+  "priority": "High"
+}
+```
+
 ## Database Collections
-- **Users**: User accounts with roles
-- **ChargingStations**: Charging station information
-- **Bookings**: Booking records with QR codes
+- **Users**: User accounts with roles and authentication data
+- **ChargingStations**: Charging station information and availability
+- **Bookings**: Booking records with QR codes and status tracking
+- **Notifications**: User notifications with types, priorities, and read status
 
 ## Security Features
 - JWT-based authentication
