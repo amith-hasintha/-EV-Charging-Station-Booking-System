@@ -1,59 +1,38 @@
 package com.example.evcharging.models;
 
-import androidx.room.ColumnInfo;
-import androidx.room.Entity;
-import androidx.room.ForeignKey;
-import androidx.room.Ignore;
-import androidx.room.Index;
-import androidx.room.PrimaryKey;
 import androidx.annotation.NonNull;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
-@Entity(tableName = "bookings",
-        foreignKeys = @ForeignKey(entity = User.class,
-                                  parentColumns = "id",
-                                  childColumns = "user_id",
-                                  onDelete = ForeignKey.CASCADE),
-        indices = {@Index("user_id")})
+// This class is ONLY for the local Room database.
+@Entity(tableName = "bookings") // This annotation fixes the "no such table" error.
 public class Booking {
 
     @PrimaryKey
     @NonNull
-    @ColumnInfo(name = "booking_id")
-    public String id;
+    public String id; // This annotation fixes the "must have @PrimaryKey" error.
 
-    @ColumnInfo(name = "station_id")
+    public String ownerNIC;
     public String stationId;
-
-    @ColumnInfo(name = "start_time")
     public String startTime;
-
-    @ColumnInfo(name = "end_time")
     public String endTime;
+    public int status;
+    public String qrCode;
+    public double totalAmount;
+    public String createdAt;
 
-    @ColumnInfo(name = "status")
-    public String status;
-
-    @ColumnInfo(name = "user_id")
-    public String userId;
-
-    // This constructor is used by Room
-    public Booking() {}
-
-    // This constructor is used by BookingActivity.java
-    @Ignore // We use @Ignore to tell Room to not use this constructor
-    public Booking(String stationId, String startTime, String endTime) {
-        this.stationId = stationId;
-        this.startTime = startTime;
-        this.endTime = endTime;
+    // A default constructor is required by Room.
+    public Booking() {
+        this.id = ""; // Initialize to a non-null value
     }
 
-    // This full constructor can be used for creating objects from API responses or other parts of the app
-    public Booking(@NonNull String id, String stationId, String startTime, String endTime, String status, String userId) {
+    // Optional: A constructor for creating instances manually.
+    public Booking(@NonNull String id, String ownerNIC, String stationId, String startTime, String endTime, int status) {
         this.id = id;
+        this.ownerNIC = ownerNIC;
         this.stationId = stationId;
         this.startTime = startTime;
         this.endTime = endTime;
         this.status = status;
-        this.userId = userId;
     }
 }

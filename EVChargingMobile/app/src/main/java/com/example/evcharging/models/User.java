@@ -5,6 +5,8 @@ import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 import androidx.annotation.NonNull;
 
+import com.google.gson.annotations.SerializedName;
+
 @Entity(tableName = "users")
 public class User {
 
@@ -28,8 +30,13 @@ public class User {
     @ColumnInfo(name = "role")
     public int role;
 
-    @ColumnInfo(name = "phone_number")
+    @SerializedName("phoneNumber")
     public String phoneNumber;
+
+    // --- ADD THIS LINE ---
+    @SerializedName("stationId")
+    public String stationId; // This will hold the operator's assigned station ID
+
 
     @ColumnInfo(name = "is_active")
     public boolean active;
