@@ -4,28 +4,32 @@ import { useEffect, useState } from "react";
 import { Container, Navbar } from "react-bootstrap";
 
 export default function StationDashboard() {
+  // --- State Hooks ---
   const navigate = useNavigate();
   const location = useLocation();
   const [stationId, setStationId] = useState(null);
   const [stationName, setStationName] = useState("");
 
+  // --- Check authentication & load station info on mount ---
   useEffect(() => {
     const token = localStorage.getItem("token");
     const sid = localStorage.getItem("stationId");
     const sname = localStorage.getItem("stationName");
-    if (!token) navigate("/");
-    if (sid) setStationId(sid);
-    if (sname) setStationName(sname);
+
+    if (!token) navigate("/"); // Redirect if not logged in
+    if (sid) setStationId(sid); // Load station ID
+    if (sname) setStationName(sname); // Load station name
   }, [navigate]);
 
+  // --- Handle logout ---
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("stationId");
     localStorage.removeItem("stationName");
     localStorage.removeItem("role");
-    navigate("/");
+    navigate("/"); // Redirect to login page
   };
-
+  
   return (
     <div style={{
       minHeight: "100vh",

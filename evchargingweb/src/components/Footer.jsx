@@ -1,6 +1,8 @@
+//Footer.jsx
 import { Container } from "react-bootstrap";
 
 export default function Footer() {
+   // Main footer container with background, text color, padding, and top border
   return (
     <footer style={{
       background: 'linear-gradient(135deg, #1B263B 0%, #121212 100%)',

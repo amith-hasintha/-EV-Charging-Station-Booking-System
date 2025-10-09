@@ -1,17 +1,20 @@
+//Sidebar.jsx
 import { Nav, Button } from "react-bootstrap";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export default function Sidebar() {
+  // React Router hooks for current path and navigation
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Logout handler: clears authentication data and navigates to home
   const handleLogout = () => {
-    // Example: clear authentication data
-    localStorage.removeItem("token");
-    sessionStorage.clear();
-    navigate("/");
+    localStorage.removeItem("token"); // Clear token
+    sessionStorage.clear(); // Clear session storage
+    navigate("/"); // Redirect to home/login page
   };
 
+  // Base style for navigation links
   const navLinkStyle = {
     color: "#121212",
     padding: "12px 16px",
@@ -24,6 +27,7 @@ export default function Sidebar() {
     display: "block",
   };
 
+  // Style for active/current navigation link
   const activeNavLinkStyle = {
     ...navLinkStyle,
     background: "linear-gradient(135deg, #00C853 0%, #00B4D8 100%)",
@@ -31,12 +35,14 @@ export default function Sidebar() {
     transform: "translateX(8px)",
   };
 
+  // Style applied on hover for non-active links
   const hoverStyle = {
     background: "linear-gradient(135deg, #00C85320 0%, #00B4D820 100%)",
     color: "#121212",
     transform: "translateX(8px)",
   };
 
+  // Sidebar container
   return (
     <div
       style={{

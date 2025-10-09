@@ -1,21 +1,26 @@
+//Login.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/Login.css";
 
 export default function Login() {
+  // --- State Hooks ---
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  
   const navigate = useNavigate();
 
+  // --- Handle form submission for login ---
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
+    e.preventDefault(); // Prevent default form submission
+    setError("");       // Clear previous errors
+    setIsLoading(true); // Set loading state
 
     try {
+      // --- Send login request to API ---
       const response = await axios.post("http://localhost:5082/api/auth/login", {
         email,
         password,
@@ -23,26 +28,26 @@ export default function Login() {
 
       const { token, user } = response.data;
 
-      // Store JWT in localStorage
+      // --- Store JWT and user info in localStorage ---
       localStorage.setItem("token", token);
       localStorage.setItem("role", user.role);
       if (user.stationId) {
         localStorage.setItem("stationId", user.stationId);
       }
 
-
-      // Redirect based on role
+      // --- Redirect user based on role ---
       if (user.role === 0) {
         navigate("/dashboard/users"); // Backoffice starts at Users page
       } else if (user.role === 1) {
-        navigate("/station-dashboard/bookings"); // placeholder for operator dashboard
+        navigate("/station-dashboard/bookings"); // Operator dashboard
       } else {
-        navigate("/dashboard/evowner"); // placeholder for EV owner dashboard
+        navigate("/dashboard/evowner"); // EV Owner dashboard
       }
     } catch (err) {
+      // --- Handle API error response ---
       setError(err.response?.data?.message || "Login failed");
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Reset loading state
     }
   };
 

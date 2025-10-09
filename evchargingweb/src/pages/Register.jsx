@@ -1,9 +1,10 @@
-import { useState } from "react";
+//Register.jsx
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.css"; // Reusing the same CSS file
-import { useEffect } from "react";
 
 export default function Register() {
+  // --- State Hooks ---
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -15,20 +16,23 @@ export default function Register() {
   const [stations, setStations] = useState([]);
   const [stationId, setStationId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
 
+  // --- Handle registration form submission ---
   const handleRegister = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-    setIsLoading(true);
+    e.preventDefault(); // Prevent default form submission
+    setError("");       // Clear previous error
+    setSuccess("");     // Clear previous success message
+    setIsLoading(true); // Set loading state
 
     try {
+      // --- Send registration request to API ---
       const response = await fetch("http://localhost:5082/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nic, firstName, lastName, email, password, role, stationId }),
-        });
+      });
 
       const data = await response.json();
 
@@ -36,39 +40,41 @@ export default function Register() {
         throw new Error(data.message || "Registration failed");
       }
 
+      // --- Set success message and redirect ---
       setSuccess("✅ Registration successful! Redirecting to login...");
 
       setTimeout(() => {
-        navigate("/");
+        navigate("/"); // Redirect to login
       }, 1500);
     } catch (err) {
+      // --- Handle API error ---
       setError(err.message);
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Reset loading state
     }
   };
 
+  // --- Fetch available charging stations on component mount ---
   useEffect(() => {
-  const fetchStations = async () => {
-    try {
-      const res = await fetch("http://localhost:5082/api/chargingstations", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
+    const fetchStations = async () => {
+      try {
+        const res = await fetch("http://localhost:5082/api/chargingstations", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
 
-      if (!res.ok) throw new Error("Failed to fetch stations");
+        if (!res.ok) throw new Error("Failed to fetch stations");
 
-      const data = await res.json();
-      setStations(data);
-      console.log("Stations fetched:", data);
-    } catch (err) {
-      console.error("Failed to fetch stations", err);
-    }
-  };
+        const data = await res.json();
+        setStations(data); // Set fetched stations in state
+        console.log("Stations fetched:", data);
+      } catch (err) {
+        console.error("Failed to fetch stations", err);
+      }
+    };
 
-  fetchStations();
-}, []);
-
+    fetchStations();
+  }, []);
 
 
   return (

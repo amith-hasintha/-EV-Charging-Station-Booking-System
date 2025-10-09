@@ -1,3 +1,4 @@
+//Dashboard.jsx
 import { Container, Row, Col } from "react-bootstrap";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
@@ -5,6 +6,8 @@ import Footer from "../components/Footer";
 import { Outlet } from "react-router-dom";
 
 export default function Dashboard() {
+  // --- Main Dashboard Layout ---
+  // Renders Header, Sidebar, Footer, and a content area for nested routes (Outlet)
   return (
     <div className="d-flex flex-column vh-100">
       <Header />

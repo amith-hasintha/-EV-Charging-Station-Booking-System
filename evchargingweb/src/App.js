@@ -1,3 +1,4 @@
+//App.js
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -7,8 +8,6 @@ import EVOwnerManagement from "./pages/EVOwnerManagement";
 import ChargingStations from "./pages/ChargingStations";
 import StationDashboard from "./pages/StationDashboard";
 import OperatorBookings from "./pages/OperatorBookings";
-import StationProfile from "./pages/StationProfile";
-import SlotCalendar from "./pages/SlotCalendar";
 
 
 function App() {
@@ -27,13 +26,9 @@ function App() {
         </Route>
 
         {/* ✅ Station Dashboard (for operators) */}
-      
-
-<Route path="/station-dashboard" element={<StationDashboard />}>
-  <Route path="bookings" element={<OperatorBookings />} />
-  <Route path="slot-calendar" element={<SlotCalendar />} />
-  <Route path="profile" element={<StationProfile />} />
-</Route>
+      <Route path="/station-dashboard" element={<StationDashboard />}>
+        <Route path="bookings" element={<OperatorBookings />} />
+      </Route>
       </Routes>
     </Router>
   );
