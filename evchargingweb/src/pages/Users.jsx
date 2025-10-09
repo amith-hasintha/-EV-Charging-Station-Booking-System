@@ -1,7 +1,9 @@
+//Users.jsx
 import { useEffect, useState } from "react";
 import { Table, Button, Modal, Form, Alert } from "react-bootstrap";
 
 export default function Users() {
+   // --- State Hooks ---
   const [users, setUsers] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -20,7 +22,7 @@ export default function Users() {
 
   const token = localStorage.getItem("token");
 
-  // Fetch users
+  // --- Fetch users from API ---
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -41,6 +43,7 @@ export default function Users() {
     }
   };
 
+  // --- Load users on component mount ---
   useEffect(() => {
     if (!token) {
       setError("Not authorized. Please login.");
@@ -49,7 +52,7 @@ export default function Users() {
     fetchUsers();
   }, [token]);
 
-  // Delete user
+  // --- Delete a user ---
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
 
@@ -67,7 +70,7 @@ export default function Users() {
     }
   };
 
-  // Toggle user active/inactive
+  // --- Toggle user active/inactive status ---
   const handleToggleStatus = async (id, currentStatus) => {
     const confirmMsg = currentStatus
       ? "Deactivate this user?"
@@ -92,7 +95,7 @@ export default function Users() {
     }
   };
 
-  // View user modal
+  // --- Open modal to view user details ---
   const handleView = (user) => {
     setSelectedUser(user);
     setEditMode(false);
@@ -106,7 +109,7 @@ export default function Users() {
     setShowModal(true);
   };
 
-  // Edit user modal
+  // --- Open modal to edit user ---
   const handleEdit = (user) => {
     setSelectedUser(user);
     setEditMode(true);
@@ -120,7 +123,7 @@ export default function Users() {
     setShowModal(true);
   };
 
-  // Save updated user
+  // --- Save updated user information ---
   const handleSave = async () => {
     if (!selectedUser) return;
 
@@ -156,7 +159,7 @@ export default function Users() {
     }
   };
 
-  // Clear messages after 5 seconds
+  // --- Clear error and success messages after 5 seconds ---
   useEffect(() => {
     if (error || success) {
       const timer = setTimeout(() => {

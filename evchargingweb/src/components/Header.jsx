@@ -1,9 +1,12 @@
+//Header.jsx
 import { Navbar, Container } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
 export default function Header() {
+  // Initialize React Router's navigation hook
   const navigate = useNavigate();
 
+  // Render the header/navbar component
   return (
     <Navbar style={{ 
       background: 'linear-gradient(135deg, #1B263B 0%, #121212 100%)',

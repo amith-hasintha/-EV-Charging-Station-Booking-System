@@ -1,7 +1,9 @@
+//OperatorBookings.jsx
 import { useEffect, useState } from "react";
 import { Table, Button, Form, Row, Col, Alert, Modal } from "react-bootstrap";
 
 export default function OperatorBookings() {
+  // --- Operator booking management ---
   const [bookings, setBookings] = useState([]);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [statusFilter, setStatusFilter] = useState("");

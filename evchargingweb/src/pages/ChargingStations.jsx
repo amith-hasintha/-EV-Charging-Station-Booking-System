@@ -1,7 +1,9 @@
+//chargingStation.jsx
 import { useEffect, useState } from "react";
 import { Table, Button, Modal, Form, Alert } from "react-bootstrap";
 
 export default function ChargingStations() {
+  // --- State variables ---
   const [stations, setStations] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -10,6 +12,7 @@ export default function ChargingStations() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Form fields
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [type, setType] = useState("AC");
@@ -19,6 +22,7 @@ export default function ChargingStations() {
 
   const token = localStorage.getItem("token");
 
+  // --- Fetch all stations from API ---
   const fetchStations = async () => {
     setLoading(true);
     try {
@@ -35,10 +39,12 @@ export default function ChargingStations() {
     }
   };
 
+  // --- Effect: load stations on component mount ---
   useEffect(() => {
     fetchStations();
   }, []);
 
+  // --- Delete a station ---
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this station?")) return;
     try {
@@ -54,9 +60,11 @@ export default function ChargingStations() {
     }
   };
 
+  // --- Change station status (activate/deactivate) ---
   const handleChangeStatus = async (station, newStatus) => {
     try {
       if (newStatus === 1) {
+        // Deactivate station
         const res = await fetch(`http://localhost:5082/api/chargingstations/${station.id}/deactivate`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -64,6 +72,7 @@ export default function ChargingStations() {
         if (!res.ok) throw new Error("Failed to deactivate station");
         setSuccess("Station deactivated successfully");
       } else {
+        // Activate station
         const payload = {
           Name: station.name,
           Location: station.location,
@@ -86,8 +95,10 @@ export default function ChargingStations() {
     }
   };
 
+  // --- Open modal for add/edit ---
   const handleOpenModal = (station = null) => {
     if (station) {
+      // Edit mode
       setSelectedStation(station);
       setEditMode(true);
       setName(station.name);
@@ -97,6 +108,7 @@ export default function ChargingStations() {
       setPricePerHour(station.pricePerHour || 0.01);
       setStatus(station.status);
     } else {
+      // Add new mode
       setSelectedStation(null);
       setEditMode(false);
       setName("");
@@ -109,6 +121,7 @@ export default function ChargingStations() {
     setShowModal(true);
   };
 
+  // --- Save station (create or update) ---
   const handleSave = async () => {
     const payload = {
       Name: name,
@@ -139,60 +152,17 @@ export default function ChargingStations() {
     }
   };
 
+  // --- Render status badge for table ---
   const renderStatusBadge = (status) => {
     switch (status) {
-      case 0: return (
-        <span style={{
-          padding: '6px 12px',
-          borderRadius: '20px',
-          fontSize: '0.85rem',
-          fontWeight: '500',
-          background: 'rgba(0, 200, 83, 0.1)',
-          color: '#00C853'
-        }}>
-          ⚡ Active
-        </span>
-      );
-      case 1: return (
-        <span style={{
-          padding: '6px 12px',
-          borderRadius: '20px',
-          fontSize: '0.85rem',
-          fontWeight: '500',
-          background: 'rgba(108, 117, 125, 0.1)',
-          color: '#6C757D'
-        }}>
-          ⏸️ Inactive
-        </span>
-      );
-      case 2: return (
-        <span style={{
-          padding: '6px 12px',
-          borderRadius: '20px',
-          fontSize: '0.85rem',
-          fontWeight: '500',
-          background: 'rgba(255, 183, 3, 0.1)',
-          color: '#FFB703'
-        }}>
-          🔧 Maintenance
-        </span>
-      );
-      default: return (
-        <span style={{
-          padding: '6px 12px',
-          borderRadius: '20px',
-          fontSize: '0.85rem',
-          fontWeight: '500',
-          background: 'rgba(108, 117, 125, 0.1)',
-          color: '#6C757D'
-        }}>
-          ❓ Unknown
-        </span>
-      );
+      case 0: return <span style={{ padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '500', background: 'rgba(0, 200, 83, 0.1)', color: '#00C853' }}>⚡ Active</span>;
+      case 1: return <span style={{ padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '500', background: 'rgba(108, 117, 125, 0.1)', color: '#6C757D' }}>⏸️ Inactive</span>;
+      case 2: return <span style={{ padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '500', background: 'rgba(255, 183, 3, 0.1)', color: '#FFB703' }}>🔧 Maintenance</span>;
+      default: return <span style={{ padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '500', background: 'rgba(108, 117, 125, 0.1)', color: '#6C757D' }}>❓ Unknown</span>;
     }
   };
 
-  // Clear messages after 5 seconds
+  // --- Auto-clear success/error messages ---
   useEffect(() => {
     if (error || success) {
       const timer = setTimeout(() => {
@@ -203,6 +173,7 @@ export default function ChargingStations() {
     }
   }, [error, success]);
 
+  // --- Render component UI ---
   return (
     <div style={{ padding: '24px' }}>
       {/* Header Section */}

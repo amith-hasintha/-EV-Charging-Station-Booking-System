@@ -1,7 +1,9 @@
+//EVOwnerManagement.jsx
 import { useEffect, useState } from "react";
 import { Table, Button, Modal, Form, Alert } from "react-bootstrap";
 
 export default function EVOwnerManagement() {
+  // --- EV Owners management ---
   const [users, setUsers] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
