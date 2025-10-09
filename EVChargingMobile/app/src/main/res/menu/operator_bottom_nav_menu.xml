@@ -1,9 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/navigation_operator_bookings"
         android:icon="@drawable/ic_view_list"
         android:title="Bookings" />
+    <!-- ADD THIS NEW ITEM -->
+    <item
+        android:id="@+id/navigation_operator_notifications"
+        android:icon="@drawable/ic_notifications"
+        android:title="Notifications" />
     <item
         android:id="@+id/navigation_scan_qr"
         android:icon="@drawable/ic_qr_code_scanner"

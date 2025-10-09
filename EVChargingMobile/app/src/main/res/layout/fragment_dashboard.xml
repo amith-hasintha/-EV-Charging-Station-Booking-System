@@ -113,7 +113,7 @@
         android:id="@+id/tvNoUpcomingBookings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="No upcoming bookings found."
+        android:text="No upcoming bookingApis found."
         android:textColor="#888"
         android:textSize="16sp"
         android:visibility="visible"

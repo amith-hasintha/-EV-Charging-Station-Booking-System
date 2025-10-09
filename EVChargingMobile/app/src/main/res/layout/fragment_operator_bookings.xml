@@ -35,7 +35,7 @@
         android:id="@+id/tvNoBookings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="No bookings found."
+        android:text="No bookingApis found."
         android:textSize="18sp"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/tvTitle"

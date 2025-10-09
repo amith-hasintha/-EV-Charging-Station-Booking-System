@@ -17,7 +17,7 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Booking ID (now formatted) -->
+        <!-- Booking ID (Top Left) -->
         <TextView
             android:id="@+id/tvBookingId"
             android:layout_width="0dp"
@@ -30,7 +30,7 @@
             app:layout_constraintEnd_toStartOf="@+id/tvBookingStatus"
             tools:text="Booking ID: #c31b2195" />
 
-        <!-- Status Pill -->
+        <!-- Status Pill (Top Right) -->
         <TextView
             android:id="@+id/tvBookingStatus"
             android:layout_width="wrap_content"
@@ -45,21 +45,29 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:text="PENDING" />
 
+        <!--  This new Guideline acts as a clean divider -->
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline_divider"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_begin="50dp" />
+
         <!-- Station ID -->
         <TextView
             android:id="@+id/tvStationId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:textColor="@color/charcoal_black"
             android:drawableStart="@drawable/ic_station"
             android:drawablePadding="8dp"
-            app:tint="@color/charcoal_black"
+            android:textColor="@color/charcoal_black"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvBookingId"
+            app:tint="@color/charcoal_black"
             tools:text="Station: station_001" />
 
-        <!-- Date & Time (now formatted) -->
+        <!-- Date & Time -->
         <TextView
             android:id="@+id/tvBookingTime"
             android:layout_width="wrap_content"
@@ -67,9 +75,9 @@
             android:layout_marginTop="8dp"
             android:drawableStart="@drawable/ic_calendar"
             android:drawablePadding="8dp"
-            app:tint="@color/charcoal_black"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvStationId"
+            app:tint="@color/charcoal_black"
             tools:text="Oct 07, 2025  |  08:16 AM - 04:16 PM" />
 
         <!-- User ID -->
@@ -80,12 +88,13 @@
             android:layout_marginTop="8dp"
             android:drawableStart="@drawable/ic_account_circle"
             android:drawablePadding="8dp"
-            app:tint="@color/charcoal_black"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvBookingTime"
+            app:tint="@color/charcoal_black"
             tools:text="User: perera@email.com" />
 
         <!-- Action buttons layout -->
+        <!-- THIS IS THE CRITICAL FIX: The top constraint is now to tvUserId, giving it space to appear -->
         <LinearLayout
             android:id="@+id/action_buttons_layout"
             android:layout_width="0dp"
@@ -104,7 +113,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Reject"
+                android:text="Cancel"
                 android:layout_marginEnd="8dp"
                 android:textColor="@color/red_error"
                 app:strokeColor="@color/red_error"
@@ -115,7 +124,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Approve"
+                android:text="Confirm"
                 android:layout_marginStart="8dp"
                 app:backgroundTint="@color/emerald_green"
                 />
