@@ -125,19 +125,23 @@ public class OperatorDashboardActivity extends AppCompatActivity {
             return true;
         } else if (itemId == R.id.navigation_scan_qr) {
             launchQrScanner();
-            return false;
+            return false; // Return false so the item doesn't stay selected
         }
         return false;
     }
 
+    // --- THIS IS THE FIX FOR THE ORIENTATION ---
+    // Replace the entire launchQrScanner method with this new version
     private void launchQrScanner() {
         ScanOptions options = new ScanOptions();
+        options.setOrientationLocked(true); // Locks orientation to prevent rotation issues
+        options.setCaptureActivity(CustomScannerActivity.class); // Use our custom activity
         options.setDesiredBarcodeFormats(ScanOptions.QR_CODE);
         options.setPrompt("Scan a Booking QR Code");
         options.setCameraId(0);
         options.setBeepEnabled(true);
         options.setBarcodeImageEnabled(true);
-        options.setOrientationLocked(true);
+
         barcodeLauncher.launch(options);
     }
 

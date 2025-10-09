@@ -2,18 +2,23 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permissions for Internet, Location and Maps -->
+    <!-- Permissions for Internet, Location, Maps, and CAMERA -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/ev_logo"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/ic_launcher_background"
         android:supportsRtl="true"
         android:theme="@style/Theme.EVChargingMobile"
         android:usesCleartextTraffic="true"
@@ -26,32 +31,42 @@
             android:value="AIzaSyCgV1SfYPRvKPqf0I1H6D3UOh_EjfImOEw" />
         <!-- ****************************************************** -->
 
-        <!-- THE FIX: Make SplashActivity the new starting point of the app. -->
+        <!-- SplashActivity is the starting point of the app. -->
         <activity
             android:name=".activities.SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppCompat.NoActionBar"> <!-- Use a theme without a title bar -->
+            android:theme="@style/Theme.AppCompat.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- LoginActivity is no longer the starting point. -->
+        <!-- All other standard activities -->
         <activity
             android:name=".activities.LoginActivity"
             android:exported="false" />
-
-        <!-- All other activities remain as they were. -->
         <activity android:name=".activities.RegisterActivity" />
         <activity android:name=".activities.DashboardActivity" />
         <activity android:name=".activities.ProfileActivity" />
         <activity android:name=".activities.OperatorDashboardActivity" />
         <activity android:name=".activities.ConfirmBookingActivity" />
+
+        <!--
+        START: THIS IS THE FIX
+
+        1. The old entry for QRScannerActivity has been removed.
+        2. The new entry for CustomScannerActivity has been added below.
+           This declaration is required to prevent the app from crashing.
+        -->
         <activity
-            android:name=".activities.QRScannerActivity"
+            android:name=".activities.CustomScannerActivity"
             android:screenOrientation="portrait"
-            tools:replace="screenOrientation"/>
+            android:stateNotNeeded="true"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:windowSoftInputMode="stateAlwaysHidden"
+            tools:replace="android:screenOrientation" />
+        <!-- END: THIS IS THE FIX -->
 
     </application>
 </manifest>
