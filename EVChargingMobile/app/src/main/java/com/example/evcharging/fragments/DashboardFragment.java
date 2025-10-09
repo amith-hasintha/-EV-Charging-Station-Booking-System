@@ -1,6 +1,7 @@
 package com.example.evcharging.fragments;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -20,7 +21,7 @@ import com.example.evcharging.activities.LoginActivity;
 import com.example.evcharging.adapters.DashboardBookingAdapter;
 import com.example.evcharging.api.ApiClient;
 import com.example.evcharging.api.ApiService;
-import com.example.evcharging.models.Booking;
+import com.example.evcharging.models.BookingApi;
 import com.example.evcharging.models.Station;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -29,8 +30,11 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import retrofit2.Call;
@@ -39,10 +43,10 @@ import retrofit2.Response;
 
 public class DashboardFragment extends Fragment implements OnMapReadyCallback {
 
-    private TextView tvPending, tvApproved, tvNearby, tvNoUpcomingBookings; // Added tvNoUpcomingBookings
+    private TextView tvPending, tvApproved, tvNearby, tvNoUpcomingBookings;
     private RecyclerView rvBookings;
-    private DashboardBookingAdapter adapter;
-    private List<Booking> bookingsList = new ArrayList<>();
+    private DashboardBookingAdapter adapter; // The variable is correctly named 'adapter'
+    private List<BookingApi> bookingsList = new ArrayList<>();
     private ApiService apiService;
     private String authToken;
 
@@ -66,12 +70,11 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
             authToken = getArguments().getString("token");
         }
 
-        // Initialize all UI components
         tvPending = view.findViewById(R.id.tvPending);
         tvApproved = view.findViewById(R.id.tvApproved);
         tvNearby = view.findViewById(R.id.tvNearby);
         rvBookings = view.findViewById(R.id.rvBookings);
-        tvNoUpcomingBookings = view.findViewById(R.id.tvNoUpcomingBookings); // Initialize new TextView
+        tvNoUpcomingBookings = view.findViewById(R.id.tvNoUpcomingBookings);
 
         apiService = ApiClient.getApiService();
 
@@ -91,7 +94,6 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onResume() {
         super.onResume();
-        // This is the key: fetch all data every time the user returns to the dashboard.
         if (!TextUtils.isEmpty(authToken)) {
             fetchMyBookings();
             fetchActiveStations();
@@ -114,38 +116,17 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
         rvBookings.setAdapter(adapter);
     }
 
-    // In DashboardFragment.java
-
     private void fetchMyBookings() {
-        apiService.getMyBookings(authToken).enqueue(new Callback<List<Booking>>() {
+        apiService.getMyBookings(authToken).enqueue(new Callback<List<BookingApi>>() {
             @Override
-            public void onResponse(@NonNull Call<List<Booking>> call, @NonNull Response<List<Booking>> response) {
+            public void onResponse(@NonNull Call<List<BookingApi>> call, @NonNull Response<List<BookingApi>> response) {
                 if (isAdded() && response.isSuccessful() && response.body() != null) {
-                    List<Booking> allBookings = response.body();
+                    List<BookingApi> allBookingApis = response.body();
 
-                    // This will now run on the main UI thread, ensuring safe UI updates.
                     if (getActivity() != null) {
                         getActivity().runOnUiThread(() -> {
-                            // Update summary counts (this is already working)
-                            updateBookingCounts(allBookings);
-
-                            // Filter for the "Upcoming Bookings" list
-                            List<Booking> upcoming = allBookings.stream()
-                                    .filter(b -> "pending".equalsIgnoreCase(b.status) || "approved".equalsIgnoreCase(b.status))
-                                    .collect(Collectors.toList());
-
-                            // --- THIS IS THE FIX ---
-                            // Use the new, robust method to update the adapter's data
-                            adapter.updateData(upcoming);
-
-                            // Toggle visibility based on whether the list is empty
-                            if (upcoming.isEmpty()) {
-                                rvBookings.setVisibility(View.GONE);
-                                tvNoUpcomingBookings.setVisibility(View.VISIBLE);
-                            } else {
-                                rvBookings.setVisibility(View.VISIBLE);
-                                tvNoUpcomingBookings.setVisibility(View.GONE);
-                            }
+                            updateDashboardSummary(allBookingApis); // Renamed for clarity
+                            updateUpcomingBookings(allBookingApis); // Renamed for clarity
                         });
                     }
                 } else if (isAdded()) {
@@ -154,7 +135,7 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
             }
 
             @Override
-            public void onFailure(@NonNull Call<List<Booking>> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<List<BookingApi>> call, @NonNull Throwable t) {
                 if (isAdded()) Toast.makeText(getContext(), "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
@@ -170,9 +151,7 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
 
                     if (getActivity() != null) {
                         getActivity().runOnUiThread(() -> {
-                            // Update the "Nearby" count
-                            tvNearby.setText(String.format("%d\nNearby", stationList.size()));
-                            // Update the map markers
+                            tvNearby.setText(String.format(Locale.getDefault(), "%d\nNearby", stationList.size()));
                             updateMapMarkers();
                         });
                     }
@@ -203,11 +182,38 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
-    private void updateBookingCounts(List<Booking> allBookings) {
-        long pending = allBookings.stream().filter(b -> "pending".equalsIgnoreCase(b.status)).count();
-        long approved = allBookings.stream().filter(b -> "approved".equalsIgnoreCase(b.status)).count();
-        tvPending.setText(String.format("%d\nPending", pending));
-        tvApproved.setText(String.format("%d\nApproved", approved));
+    private void updateDashboardSummary(List<BookingApi> allBookingApis) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            // Backend Enum: Active=0, Confirmed=1
+            long pending = allBookingApis.stream().filter(b -> b.status == 0).count(); // Use numeric status
+            long approved = allBookingApis.stream().filter(b -> b.status == 1).count(); // Use numeric status
+            tvPending.setText(String.format(Locale.getDefault(), "%d\nPending", pending));
+            tvApproved.setText(String.format(Locale.getDefault(), "%d\nApproved", approved));
+        }
+    }
+
+    private void updateUpcomingBookings(List<BookingApi> allBookingApis) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            List<BookingApi> upcoming = new ArrayList<>();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                // Filter for bookings that are either Active (0) or Confirmed (1)
+                upcoming = allBookingApis.stream()
+                        .filter(b -> b.status == 0 || b.status == 1) // Compare integers
+                        .sorted(Comparator.comparing(b -> ZonedDateTime.parse(b.startTime)))
+                        .collect(Collectors.toList());
+            }
+
+            if (upcoming.isEmpty()) {
+                rvBookings.setVisibility(View.GONE);
+                tvNoUpcomingBookings.setVisibility(View.VISIBLE);
+            } else {
+                rvBookings.setVisibility(View.VISIBLE);
+                tvNoUpcomingBookings.setVisibility(View.GONE);
+                // --- THIS IS THE FIX ---
+                // Use the correct method name 'updateBookings' and the correct variable 'adapter'
+                adapter.updateBookings(upcoming);
+            }
+        }
     }
 
     private void handleApiError(String action, int code) {

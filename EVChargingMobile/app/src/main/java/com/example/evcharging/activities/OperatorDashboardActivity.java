@@ -11,13 +11,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.example.evcharging.R;
+import com.example.evcharging.fragments.NotificationsFragment;
 import com.example.evcharging.fragments.OperatorBookingsFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.journeyapps.barcodescanner.ScanContract;
@@ -27,28 +27,29 @@ public class OperatorDashboardActivity extends AppCompatActivity {
 
     private String authToken;
     private final FragmentManager fm = getSupportFragmentManager();
+
+    // Declare fragments but DO NOT initialize them here
     private OperatorBookingsFragment operatorBookingsFragment;
+    private NotificationsFragment notificationsFragment;
+    private Fragment activeFragment;
+
     private TextView toolbarTitle;
     private BottomNavigationView bottomNavigationView;
 
-    // ActivityResultLauncher for the QR Code Scanner
+    // ActivityResultLauncher for the QR Code Scanner (this is correct)
     private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(new ScanContract(),
             result -> {
                 if(result.getContents() == null) {
                     Toast.makeText(OperatorDashboardActivity.this, "Scan cancelled", Toast.LENGTH_LONG).show();
                 } else {
-                    // The QR code content is in result.getContents()
-                    // Navigate to a confirmation screen with this data
                     Log.d("QR_SCAN", "Scanned: " + result.getContents());
                     Intent intent = new Intent(OperatorDashboardActivity.this, ConfirmBookingActivity.class);
                     intent.putExtra("token", authToken);
-                    intent.putExtra("bookingId", result.getContents()); // Pass the scanned booking ID
+                    intent.putExtra("bookingId", result.getContents());
                     startActivity(intent);
                 }
-                // IMPORTANT: Reselect the bookings tab after scanning
                 bottomNavigationView.setSelectedItemId(R.id.navigation_operator_bookings);
             });
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,26 +67,43 @@ public class OperatorDashboardActivity extends AppCompatActivity {
         ImageView ivLogout = findViewById(R.id.ivLogout);
         ivLogout.setOnClickListener(v -> logoutUser());
 
-        setupFragments();
-
         bottomNavigationView = findViewById(R.id.operator_bottom_navigation);
         bottomNavigationView.setOnItemSelectedListener(this::onNavigationItemSelected);
 
-        // Load the default fragment
+        // Setup fragments only if the activity is newly created
         if (savedInstanceState == null) {
+            setupFragments();
             bottomNavigationView.setSelectedItemId(R.id.navigation_operator_bookings);
+        } else {
+            // Re-find fragments on configuration change
+            operatorBookingsFragment = (OperatorBookingsFragment) fm.findFragmentByTag("1");
+            notificationsFragment = (NotificationsFragment) fm.findFragmentByTag("2");
+            // Determine active fragment after recreation
+            if (operatorBookingsFragment != null && !operatorBookingsFragment.isHidden()) {
+                activeFragment = operatorBookingsFragment;
+            } else if (notificationsFragment != null && !notificationsFragment.isHidden()) {
+                activeFragment = notificationsFragment;
+            }
         }
     }
 
     private void setupFragments() {
-        Bundle bundle = new Bundle();
-        bundle.putString("token", authToken);
+        // 1. Retrieve the token and stationId ONCE from the Intent.
+        String stationId = getIntent().getStringExtra("stationId");
 
-        operatorBookingsFragment = new OperatorBookingsFragment();
-        operatorBookingsFragment.setArguments(bundle);
+        // 2. Use the safe newInstance factory method to create each fragment.
+        operatorBookingsFragment = OperatorBookingsFragment.newInstance(authToken, stationId);
+        notificationsFragment = NotificationsFragment.newInstance(authToken);
 
-        // Add the fragment and commit
-        fm.beginTransaction().add(R.id.operator_fragment_container, operatorBookingsFragment, "1").commit();
+        // 3. Add the fragments to the FragmentManager with unique tags.
+        fm.beginTransaction()
+                .add(R.id.operator_fragment_container, notificationsFragment, "2")
+                .hide(notificationsFragment)
+                .add(R.id.operator_fragment_container, operatorBookingsFragment, "1")
+                .commit();
+
+        // 4. Set the initial active fragment.
+        activeFragment = operatorBookingsFragment;
     }
 
     private boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -93,12 +111,21 @@ public class OperatorDashboardActivity extends AppCompatActivity {
 
         if (itemId == R.id.navigation_operator_bookings) {
             toolbarTitle.setText("Bookings");
-            fm.beginTransaction().show(operatorBookingsFragment).commit();
+            if(activeFragment != operatorBookingsFragment) {
+                fm.beginTransaction().hide(activeFragment).show(operatorBookingsFragment).commit();
+                activeFragment = operatorBookingsFragment;
+            }
+            return true;
+        } else if (itemId == R.id.navigation_operator_notifications) {
+            toolbarTitle.setText("Notifications");
+            if(activeFragment != notificationsFragment) {
+                fm.beginTransaction().hide(activeFragment).show(notificationsFragment).commit();
+                activeFragment = notificationsFragment;
+            }
             return true;
         } else if (itemId == R.id.navigation_scan_qr) {
-            // Launch the QR Scanner
             launchQrScanner();
-            return false; // Return false so the item doesn't stay selected
+            return false;
         }
         return false;
     }
@@ -107,7 +134,7 @@ public class OperatorDashboardActivity extends AppCompatActivity {
         ScanOptions options = new ScanOptions();
         options.setDesiredBarcodeFormats(ScanOptions.QR_CODE);
         options.setPrompt("Scan a Booking QR Code");
-        options.setCameraId(0);  // Use a specific camera of the device
+        options.setCameraId(0);
         options.setBeepEnabled(true);
         options.setBarcodeImageEnabled(true);
         options.setOrientationLocked(true);
@@ -116,9 +143,8 @@ public class OperatorDashboardActivity extends AppCompatActivity {
 
     private void logoutUser() {
         SharedPreferences prefs = getSharedPreferences(LoginActivity.PREFS_NAME, Context.MODE_PRIVATE);
-        prefs.edit().remove(LoginActivity.AUTH_TOKEN_KEY).apply();
-
-        Intent intent = new Intent(OperatorDashboardActivity.this, LoginActivity.class);
+        prefs.edit().remove(LoginActivity.AUTH_TOKEN_KEY).remove(LoginActivity.STATION_ID_KEY).apply();
+        Intent intent = new Intent(this, LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();

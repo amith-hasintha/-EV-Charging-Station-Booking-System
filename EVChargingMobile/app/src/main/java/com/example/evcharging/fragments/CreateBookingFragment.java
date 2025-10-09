@@ -23,7 +23,6 @@ import com.example.evcharging.R;
 import com.example.evcharging.activities.LoginActivity;
 import com.example.evcharging.api.ApiClient;
 import com.example.evcharging.api.ApiService;
-import com.example.evcharging.models.Booking;
 import com.example.evcharging.models.Station;
 
 import java.text.SimpleDateFormat;

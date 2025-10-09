@@ -17,7 +17,7 @@ import com.example.evcharging.R;
 import com.example.evcharging.adapters.BookingAdapter;
 import com.example.evcharging.api.ApiClient;
 import com.example.evcharging.api.ApiService;
-import com.example.evcharging.models.Booking;
+import com.example.evcharging.models.BookingApi;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ public class MyBookingsFragment extends Fragment {
 
     private RecyclerView rvMyBookings;
     private BookingAdapter bookingAdapter;
-    private List<Booking> bookingsList = new ArrayList<>();
+    private List<BookingApi> bookingsList = new ArrayList<>();
     private ApiService apiService;
     private String authToken;
 
@@ -81,9 +81,9 @@ public class MyBookingsFragment extends Fragment {
 
     private void fetchMyBookings() {
         // This method correctly calls the /api/bookings/my-bookings endpoint
-        apiService.getMyBookings(authToken).enqueue(new Callback<List<Booking>>() {
+        apiService.getMyBookings(authToken).enqueue(new Callback<List<BookingApi>>() {
             @Override
-            public void onResponse(Call<List<Booking>> call, Response<List<Booking>> response) {
+            public void onResponse(Call<List<BookingApi>> call, Response<List<BookingApi>> response) {
                 // Check if the fragment is still attached to the activity
                 if (isAdded() && response.isSuccessful() && response.body() != null) {
                     bookingsList.clear();
@@ -95,7 +95,7 @@ public class MyBookingsFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(Call<List<Booking>> call, Throwable t) {
+            public void onFailure(Call<List<BookingApi>> call, Throwable t) {
                 if (isAdded()) {
                     Toast.makeText(getContext(), "Network error while fetching bookings: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
