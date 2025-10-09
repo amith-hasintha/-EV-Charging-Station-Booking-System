@@ -8,10 +8,11 @@ import androidx.room.RoomDatabase;
 import com.example.evcharging.dao.BookingDao;
 import com.example.evcharging.dao.UserDao;
 import com.example.evcharging.models.Booking;
+import com.example.evcharging.models.BookingApi;
 import com.example.evcharging.models.User;
 
 // Add your entities to the entities array
-@Database(entities = {User.class, Booking.class}, version = 1, exportSchema = false)
+@Database(entities = {User.class, Booking.class}, version = 2, exportSchema = false) // <-- ADD Booking.class AND INCREMENT version
 public abstract class AppDatabase extends RoomDatabase {
 
     // Define your DAOs here

@@ -42,6 +42,8 @@ android {
 
 dependencies {
     implementation(libs.protolite.well.known.types)
+    implementation(libs.rendering)
+    implementation(libs.androidx.swiperefreshlayout)
     // Define Room versions
     val room_version = "2.6.1"
 

@@ -3,7 +3,7 @@ package com.example.evcharging.adapters;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,18 +18,16 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.evcharging.R;
 import com.example.evcharging.api.ApiService;
-import com.example.evcharging.models.Booking;
+import com.example.evcharging.models.BookingApi;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
-import java.util.TimeZone;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -37,13 +35,13 @@ import retrofit2.Response;
 
 public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingViewHolder> {
 
-    private List<Booking> bookingList;
-    private ApiService apiService;
-    private String authToken;
-    private Context context; // Add context for colors and other resources
+    private final List<BookingApi> bookingApiList;
+    private final ApiService apiService;
+    private final String authToken;
+    private Context context; // Keep context for resources
 
-    public BookingAdapter(List<Booking> bookingList, ApiService apiService, String authToken) {
-        this.bookingList = bookingList;
+    public BookingAdapter(List<BookingApi> bookingApiList, ApiService apiService, String authToken) {
+        this.bookingApiList = bookingApiList;
         this.apiService = apiService;
         this.authToken = authToken;
     }
@@ -51,78 +49,45 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
     @NonNull
     @Override
     public BookingViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        this.context = parent.getContext(); // Get context from the parent view
+        this.context = parent.getContext();
         View view = LayoutInflater.from(context).inflate(R.layout.item_booking, parent, false);
         return new BookingViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull BookingViewHolder holder, int position) {
-        Booking booking = bookingList.get(position);
+        BookingApi bookingApi = bookingApiList.get(position);
+        holder.bind(bookingApi, context);
 
-        // Here you would ideally fetch Station details by booking.stationId to show the name
-        holder.tvStationName.setText(booking.stationId);
-        holder.tvStatus.setText(booking.status.toUpperCase());
-
-        // --- NEW: Format the date and time for display ---
-        holder.tvStartTime.setText(formatDateString(booking.startTime));
-        holder.tvEndTime.setText(formatDateString(booking.endTime));
-
-        // --- UI LOGIC BASED ON STATUS ---
-
-        // Set status color dynamically
-        GradientDrawable statusBackground = (GradientDrawable) holder.tvStatus.getBackground().mutate();
-        int statusColor = ContextCompat.getColor(context, R.color.orange_soda); // Default for pending
-        if ("approved".equalsIgnoreCase(booking.status)) {
-            statusColor = ContextCompat.getColor(context, R.color.emerald_green);
-        } else if ("completed".equalsIgnoreCase(booking.status)) {
-            statusColor = ContextCompat.getColor(context, R.color.cyan_blue);
-        } else if ("cancelled".equalsIgnoreCase(booking.status) || "rejected".equalsIgnoreCase(booking.status)) {
-            statusColor = ContextCompat.getColor(context, R.color.holo_red_dark);
-        }
-        statusBackground.setColor(statusColor);
-
-
-        // Show QR code for "Approved" bookings
-        if ("approved".equalsIgnoreCase(booking.status)) {
-            holder.ivQrCode.setVisibility(View.VISIBLE);
-            holder.btnCancelBooking.setVisibility(View.GONE);
-            generateAndSetQrCode(holder.ivQrCode, booking.id);
-        }
-        // Show "Cancel" button ONLY for "Pending" bookings
-        else if ("pending".equalsIgnoreCase(booking.status)) {
-            holder.ivQrCode.setVisibility(View.GONE);
-            holder.btnCancelBooking.setVisibility(View.VISIBLE);
-            // *** THE FIX: Pass the holder object to the listener ***
-            holder.btnCancelBooking.setOnClickListener(v -> cancelBooking(booking, holder));
-        }
-        // Hide QR and Cancel button for all other statuses (Completed, Rejected, etc.)
-        else {
-            holder.ivQrCode.setVisibility(View.GONE);
-            holder.btnCancelBooking.setVisibility(View.GONE);
-        }
+        // Cancellation logic is now handled inside the ViewHolder's bind method
+        // to simplify state management and ensure buttons are only active when they should be.
+        holder.btnCancelBooking.setOnClickListener(v -> {
+            // Only allow cancellation if the booking status is 'Active' (0)
+            if (bookingApi.status == 0) {
+                cancelBooking(bookingApi, holder.getAdapterPosition());
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
-        return bookingList.size();
+        return bookingApiList.size();
     }
 
-    // *** THE FIX: Updated method signature to accept the holder ***
-    private void cancelBooking(final Booking booking, final BookingViewHolder holder) {
-        final int position = holder.getAdapterPosition();
-        if (position == RecyclerView.NO_POSITION) return; // Item already removed, ignore.
+    private void cancelBooking(final BookingApi bookingApi, final int position) {
+        if (position == RecyclerView.NO_POSITION) return;
 
-        apiService.cancelBooking(authToken, booking.id).enqueue(new Callback<Void>() {
+        // Use the correct API endpoint for user cancellation
+        apiService.cancelBooking(authToken, bookingApi.id).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(context, "Booking successfully cancelled.", Toast.LENGTH_SHORT).show();
-                    // Update status locally and refresh the item view
-                    booking.status = "cancelled";
+                    // Update status locally to 'Cancelled' (3) and refresh the item
+                    bookingApi.status = 3;
                     notifyItemChanged(position);
                 } else {
-                    Toast.makeText(context, "Failed to cancel booking. Please try again.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Failed to cancel booking (Error: " + response.code() + ")", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -133,7 +98,6 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         });
     }
 
-    // --- Helper method to generate QR Code ---
     private void generateAndSetQrCode(ImageView imageView, String bookingId) {
         QRCodeWriter writer = new QRCodeWriter();
         try {
@@ -149,46 +113,108 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
             imageView.setImageBitmap(bmp);
         } catch (WriterException e) {
             e.printStackTrace();
-            Toast.makeText(context, "Could not generate QR code.", Toast.LENGTH_SHORT).show();
         }
     }
-
-    // --- NEW: Helper method to format date strings ---
-    private String formatDateString(String isoString) {
-        if (isoString == null) return "N/A";
-        // Input format from server: "YYYY-MM-DDTHH:MM:SSZ"
-        SimpleDateFormat serverFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-        serverFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-        // Desired output format: "dd MMM yyyy, hh:mm a" (e.g., 28 Oct 2025, 10:00 AM)
-        SimpleDateFormat displayFormat = new SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault());
-        displayFormat.setTimeZone(TimeZone.getDefault()); // Display in user's local timezone
-
-        try {
-            Date date = serverFormat.parse(isoString);
-            return displayFormat.format(date);
-        } catch (ParseException e) {
-            e.printStackTrace();
-            // Fallback to showing the raw string if parsing fails
-            return isoString;
-        }
-    }
-
 
     // --- ViewHolder ---
-    static class BookingViewHolder extends RecyclerView.ViewHolder {
-        TextView tvStationName, tvStatus, tvStartTime, tvEndTime; // Updated to match layout
+    public class BookingViewHolder extends RecyclerView.ViewHolder {
+        TextView tvStationName, tvBookingTime, tvStatus;
         ImageView ivQrCode;
         Button btnCancelBooking;
 
         public BookingViewHolder(@NonNull View itemView) {
             super(itemView);
+            // These IDs now EXACTLY match the item_booking.xml layout file
             tvStationName = itemView.findViewById(R.id.tvBookingStationName);
+            tvBookingTime = itemView.findViewById(R.id.tvBookingTime);
             tvStatus = itemView.findViewById(R.id.tvBookingStatus);
-            tvStartTime = itemView.findViewById(R.id.tvStartTime); // From improved layout
-            tvEndTime = itemView.findViewById(R.id.tvEndTime);     // From improved layout
             ivQrCode = itemView.findViewById(R.id.ivQrCode);
             btnCancelBooking = itemView.findViewById(R.id.btnCancelBooking);
+        }
+
+        public void bind(final BookingApi bookingApi, Context context) {
+            tvStationName.setText("Station: " + bookingApi.stationId);
+            tvBookingTime.setText(formatDateTimeRange(bookingApi.startTime, bookingApi.endTime));
+
+            // Hide everything by default, then show based on status
+            ivQrCode.setVisibility(View.GONE);
+            btnCancelBooking.setVisibility(View.GONE);
+
+            // --- THE FINAL NUMERIC STATUS FIX ---
+            // Backend Enum: Active=0, Confirmed=1, Completed=2, Cancelled=3, NoShow=4
+            switch (bookingApi.status) {
+                case 0: // Active (User sees this as "Pending Confirmation")
+                    tvStatus.setText("ACTIVE");
+                    tvStatus.setBackground(ContextCompat.getDrawable(context, R.drawable.status_background_pending));
+                    btnCancelBooking.setVisibility(View.VISIBLE); // Show cancel button for active bookings
+                    break;
+
+                case 1: // Confirmed (User sees this as "Approved")
+                    tvStatus.setText("CONFIRMED");
+                    tvStatus.setBackground(ContextCompat.getDrawable(context, R.drawable.status_background_approved));
+                    ivQrCode.setVisibility(View.VISIBLE); // Show QR code for confirmed bookings
+                    generateAndSetQrCode(ivQrCode, bookingApi.id);
+                    break;
+
+                case 2: // Completed
+                    tvStatus.setText("COMPLETED");
+                    tvStatus.setBackground(ContextCompat.getDrawable(context, R.drawable.status_background_completed)); // Assumes a blue-ish color
+                    break;
+
+                case 3: // Cancelled
+                    tvStatus.setText("CANCELLED");
+                    tvStatus.setBackground(ContextCompat.getDrawable(context, R.drawable.status_background_rejected));
+                    break;
+
+                case 4: // NoShow
+                default:
+                    tvStatus.setText("UNKNOWN");
+                    tvStatus.setBackground(ContextCompat.getDrawable(context, R.drawable.status_background_rejected));
+                    break;
+            }
+        }
+
+        private String formatDateTimeRange(String start, String end) {
+            try {
+                DateTimeFormatter inputFormatter = null;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    inputFormatter = DateTimeFormatter.ISO_ZONED_DATE_TIME;
+                }
+                DateTimeFormatter dateFormatter = null;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    dateFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy", Locale.getDefault());
+                }
+                DateTimeFormatter timeFormatter = null;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault());
+                }
+
+                ZonedDateTime startTime = null;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startTime = ZonedDateTime.parse(start, inputFormatter);
+                }
+                ZonedDateTime endTime = null;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    endTime = ZonedDateTime.parse(end, inputFormatter);
+                }
+
+                String date = null;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    date = startTime.format(dateFormatter);
+                }
+                String startTimeStr = null;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startTimeStr = startTime.format(timeFormatter);
+                }
+                String endTimeStr = null;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    endTimeStr = endTime.format(timeFormatter);
+                }
+
+                return String.format("%s | %s - %s", date, startTimeStr, endTimeStr);
+            } catch (Exception e) {
+                return "Invalid Date";
+            }
         }
     }
 }

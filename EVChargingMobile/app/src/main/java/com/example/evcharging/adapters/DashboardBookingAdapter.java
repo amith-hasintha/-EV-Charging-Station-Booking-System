@@ -1,55 +1,59 @@
 package com.example.evcharging.adapters;
 
-import android.graphics.Color;
+import android.content.Context;
 import android.graphics.drawable.GradientDrawable;
-import android.util.Log;
-import android.view.LayoutInflater;import android.view.View;
+import android.os.Build;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.evcharging.R;
-import com.example.evcharging.models.Booking;
+import com.example.evcharging.models.BookingApi;
+
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 public class DashboardBookingAdapter extends RecyclerView.Adapter<DashboardBookingAdapter.ViewHolder> {
 
-    // Make the list final, it will be managed by the updateData method
-    private final List<Booking> bookingList;
+    private final List<BookingApi> bookingApiList;
+    private Context context; // Context for accessing resources
 
-    public DashboardBookingAdapter(List<Booking> bookingList) {
-        this.bookingList = bookingList;
+    public DashboardBookingAdapter(List<BookingApi> bookingApiList) {
+        this.bookingApiList = bookingApiList;
     }
 
-    // --- START: ADD THIS NEW METHOD ---
     /**
      * Updates the adapter's data set and refreshes the RecyclerView.
-     * @param newBookings The new list of bookings to display.
+     * @param newBookingApis The new list of bookings to display.
      */
-    public void updateData(List<Booking> newBookings) {
-        this.bookingList.clear();
-        this.bookingList.addAll(newBookings);
-        notifyDataSetChanged(); // Let the adapter know the data has changed
+    public void updateBookings(List<BookingApi> newBookingApis) {
+        this.bookingApiList.clear();
+        this.bookingApiList.addAll(newBookingApis);
+        notifyDataSetChanged();
     }
-    // --- END: ADD THIS NEW METHOD ---
-
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_dashboard_booking, parent, false);
+        this.context = parent.getContext();
+        View view = LayoutInflater.from(context).inflate(R.layout.item_dashboard_booking, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Booking booking = bookingList.get(position);
-        holder.bind(booking);
+        BookingApi bookingApi = bookingApiList.get(position);
+        holder.bind(bookingApi, context); // Pass context to the bind method
     }
 
     @Override
     public int getItemCount() {
-        return bookingList.size();
+        return bookingApiList.size();
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
@@ -57,30 +61,75 @@ public class DashboardBookingAdapter extends RecyclerView.Adapter<DashboardBooki
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
+            // These IDs must match your item_dashboard_booking.xml
             tvStationName = itemView.findViewById(R.id.tvCardStationName);
             tvTime = itemView.findViewById(R.id.tvCardTime);
             tvStatus = itemView.findViewById(R.id.tvCardStatus);
         }
 
-        void bind(Booking booking) {
-            // In a real app, you'd fetch the station name from the ID. For now, we show the ID.
-            tvStationName.setText(booking.stationId != null ? booking.stationId : "N/A");
+        void bind(BookingApi bookingApi, Context context) {
+            tvStationName.setText(bookingApi.stationId != null ? bookingApi.stationId : "N/A");
+            tvTime.setText(formatSimpleTime(bookingApi.startTime));
 
-            // You can add proper date formatting here later
-            tvTime.setText(booking.startTime);
-            tvStatus.setText(booking.status != null ? booking.status.toUpperCase() : "UNKNOWN");
+            int status = bookingApi.status;
+            String statusText;
+            int statusColor;
 
-            // Dynamically change status color
+            // --- THIS IS THE FINAL FIX ---
+            // Backend Enum: Active=0, Confirmed=1, Completed=2, Cancelled=3
+            switch (status) {
+                case 0: // Active
+                    statusText = "ACTIVE";
+                    statusColor = ContextCompat.getColor(context, R.color.orange_soda);
+                    break;
+                case 1: // Confirmed
+                    statusText = "CONFIRMED";
+                    statusColor = ContextCompat.getColor(context, R.color.emerald_green);
+                    break;
+                case 3: // Cancelled
+                    statusText = "CANCELLED";
+                    statusColor = ContextCompat.getColor(context, R.color.red_error);
+                    break;
+                case 2: // Completed
+                default:
+                    statusText = "COMPLETED";
+                    statusColor = ContextCompat.getColor(context, R.color.cyan_blue);
+                    break;
+            }
+
+            tvStatus.setText(statusText);
+
+            // Dynamically change status color safely
             if (tvStatus.getBackground() instanceof GradientDrawable) {
                 GradientDrawable background = (GradientDrawable) tvStatus.getBackground().mutate();
-                int statusColor = Color.parseColor("#E67E22"); // Default orange for pending
-                if ("approved".equalsIgnoreCase(booking.status)) {
-                    statusColor = Color.parseColor("#2ECC71"); // Green
-                } else if ("cancelled".equalsIgnoreCase(booking.status) || "rejected".equalsIgnoreCase(booking.status)) {
-                    statusColor = Color.parseColor("#E74C3C"); // Red
-                }
                 background.setColor(statusColor);
             }
+        }
+
+        private String formatSimpleTime(String isoString) {
+            if (isoString == null) return "N/A";
+            try {
+                // The java.time APIs are cleaner and safer than SimpleDateFormat
+                DateTimeFormatter inputFormatter = null;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    inputFormatter = DateTimeFormatter.ISO_ZONED_DATE_TIME;
+                }
+                DateTimeFormatter timeFormatter = null;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault());
+                }
+                ZonedDateTime zonedDateTime = null;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    zonedDateTime = ZonedDateTime.parse(isoString, inputFormatter);
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    return zonedDateTime.format(timeFormatter);
+                }
+            } catch (Exception e) {
+                // Fallback in case of parsing error
+                return "Invalid Time";
+            }
+            return isoString;
         }
     }
 }

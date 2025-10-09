@@ -4,20 +4,25 @@ import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
-
 import com.example.evcharging.models.Booking;
+
 import java.util.List;
 
 @Dao
 public interface BookingDao {
 
+    // This now works because Booking is a valid @Entity
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(Booking booking);
 
-    // Corrected the query to use the column names 'user_id' and 'start_time'
-    @Query("SELECT * FROM bookings WHERE user_id = :userId ORDER BY start_time DESC")
-    List<Booking> getBookingsByUserId(String userId);
+    // This now works because we are querying the 'bookings' table for the Booking entity
+    @Query("SELECT * FROM bookings WHERE ownerNIC = :nic")
+    List<Booking> getBookingsByUserNic(String nic);
 
+    // This now works because it queries the correct 'bookings' table
     @Query("DELETE FROM bookings")
     void deleteAll();
+
+    // REMOVED: All methods that were trying to use or return 'BookingApi'.
+    // The DAO should not know about the API model.
 }
