@@ -8,6 +8,7 @@ export default function EVOwnerManagement() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // User fields
   const [nic, setNic] = useState("");
@@ -21,6 +22,7 @@ export default function EVOwnerManagement() {
 
   // ---------------- Fetch EV Owners ----------------
   const fetchEVOwners = async () => {
+    setLoading(true);
     try {
       const res = await fetch("http://localhost:5082/api/users", {
         headers: {
@@ -33,6 +35,8 @@ export default function EVOwnerManagement() {
       setUsers(data.filter(u => u.role === 2)); // Only EV Owners
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -133,7 +137,7 @@ export default function EVOwnerManagement() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(!currentStatus), // must send boolean
+        body: JSON.stringify(!currentStatus),
       });
       if (!res.ok) throw new Error("Failed to update status");
       setSuccess(`EV Owner ${currentStatus ? "deactivated" : "activated"} successfully`);
@@ -143,127 +147,487 @@ export default function EVOwnerManagement() {
     }
   };
 
-  // ---------------- Render ----------------
-  return (
-    <div>
-      <h3 className="mb-4">EV Owner Management</h3>
-      {error && <Alert variant="danger">{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
+  // Clear messages after 5 seconds
+  useEffect(() => {
+    if (error || success) {
+      const timer = setTimeout(() => {
+        setError("");
+        setSuccess("");
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, success]);
 
-      <Table striped bordered hover responsive>
-        <thead>
-          <tr>
-            <th>NIC</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.length > 0 ? (
-            users.map(u => (
-              <tr key={u.id}>
-                <td>{u.nic}</td>
-                <td>{u.firstName}</td>
-                <td>{u.lastName}</td>
-                <td>{u.email}</td>
-                <td>{u.phoneNumber || "N/A"}</td>
-                <td>
-                  <span className={`badge ${u.isActive ? "bg-success" : "bg-secondary"}`}>
-                    {u.isActive ? "Active" : "Inactive"}
-                  </span>
-                </td>
-                <td>
-                  <Button variant="info" size="sm" onClick={() => handleView(u)}>View</Button>{" "}
-                  <Button variant="warning" size="sm" onClick={() => handleEdit(u)}>Edit</Button>{" "}
-                  <Button variant="danger" size="sm" onClick={() => handleDelete(u.id)}>Delete</Button>{" "}
-                  <Button 
-                    variant={u.isActive ? "secondary" : "success"} 
-                    size="sm" 
-                    onClick={() => handleToggleStatus(u.id, u.isActive)}
-                  >
-                    {u.isActive ? "Deactivate" : "Activate"}
-                  </Button>
-                </td>
+  return (
+    <div style={{ padding: '24px' }}>
+      {/* Header Section */}
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '16px', 
+        marginBottom: '32px' 
+      }}>
+        <div style={{
+          fontSize: '2.5rem',
+          background: 'linear-gradient(135deg, #00C853 0%, #00B4D8 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text'
+        }}>
+          🚗
+        </div>
+        <div>
+          <h1 style={{ 
+            color: '#121212', 
+            margin: 0, 
+            fontWeight: '700',
+            fontSize: '2rem'
+          }}>
+            EV Owner Management
+          </h1>
+          <p style={{ 
+            color: '#6C757D', 
+            margin: 0,
+            fontSize: '1.1rem'
+          }}>
+            Manage all electric vehicle owners and their accounts
+          </p>
+        </div>
+      </div>
+
+      {/* Alerts */}
+      {error && (
+        <div style={{
+          background: 'rgba(255, 183, 3, 0.1)',
+          color: '#FFB703',
+          padding: '16px',
+          borderRadius: '12px',
+          border: '1px solid rgba(255, 183, 3, 0.3)',
+          marginBottom: '24px',
+          fontWeight: '500'
+        }}>
+          {error}
+        </div>
+      )}
+      
+      {success && (
+        <div style={{
+          background: 'rgba(0, 200, 83, 0.1)',
+          color: '#00C853',
+          padding: '16px',
+          borderRadius: '12px',
+          border: '1px solid rgba(0, 200, 83, 0.3)',
+          marginBottom: '24px',
+          fontWeight: '500'
+        }}>
+          {success}
+        </div>
+      )}
+
+      {/* Stats Bar */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        marginBottom: '24px'
+      }}>
+        <div style={{ fontSize: '1rem', color: '#6C757D', fontWeight: '500' }}>
+          Total EV Owners: <strong style={{ color: '#121212' }}>{users.length}</strong>
+          <span style={{ marginLeft: '16px' }}>
+            Active: <strong style={{ color: '#00C853' }}>
+              {users.filter(u => u.isActive).length}
+            </strong>
+          </span>
+        </div>
+      </div>
+
+      {/* EV Owners Table */}
+      <div style={{
+        background: '#F9FAFB',
+        borderRadius: '20px',
+        padding: '32px',
+        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+        border: '1px solid rgba(255, 255, 255, 0.1)'
+      }}>
+        {loading ? (
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '40px',
+            color: '#6C757D'
+          }}>
+            <div className="spinner" style={{
+              width: '40px',
+              height: '40px',
+              border: '3px solid transparent',
+              borderTop: '3px solid #00C853',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto 16px'
+            }}></div>
+            Loading EV owners...
+          </div>
+        ) : (
+          <Table hover responsive style={{ 
+            margin: 0,
+            border: 'none'
+          }}>
+            <thead>
+              <tr style={{ 
+                background: 'linear-gradient(135deg, #1B263B 0%, #121212 100%)',
+                color: '#F9FAFB'
+              }}>
+                <th style={{ 
+                  padding: '16px', 
+                  border: 'none',
+                  fontWeight: '600',
+                  fontSize: '0.95rem'
+                }}>NIC</th>
+                <th style={{ 
+                  padding: '16px', 
+                  border: 'none',
+                  fontWeight: '600',
+                  fontSize: '0.95rem'
+                }}>Name</th>
+                <th style={{ 
+                  padding: '16px', 
+                  border: 'none',
+                  fontWeight: '600',
+                  fontSize: '0.95rem'
+                }}>Email</th>
+                <th style={{ 
+                  padding: '16px', 
+                  border: 'none',
+                  fontWeight: '600',
+                  fontSize: '0.95rem'
+                }}>Phone</th>
+                <th style={{ 
+                  padding: '16px', 
+                  border: 'none',
+                  fontWeight: '600',
+                  fontSize: '0.95rem'
+                }}>Status</th>
+                <th style={{ 
+                  padding: '16px', 
+                  border: 'none',
+                  fontWeight: '600',
+                  fontSize: '0.95rem',
+                  textAlign: 'center'
+                }}>Actions</th>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="7" className="text-center">No EV Owners found.</td>
-            </tr>
-          )}
-        </tbody>
-      </Table>
+            </thead>
+            <tbody>
+              {users.length > 0 ? (
+                users.map(u => (
+                  <tr key={u.id} style={{ 
+                    borderBottom: '1px solid #E5E7EB',
+                    transition: 'all 0.3s ease'
+                  }}>
+                    <td style={{ 
+                      padding: '16px', 
+                      fontWeight: '500',
+                      color: '#121212'
+                    }}>{u.nic}</td>
+                    <td style={{ 
+                      padding: '16px',
+                      color: '#121212',
+                      fontWeight: '500'
+                    }}>
+                      {u.firstName} {u.lastName}
+                    </td>
+                    <td style={{ 
+                      padding: '16px',
+                      color: '#121212'
+                    }}>{u.email}</td>
+                    <td style={{ 
+                      padding: '16px',
+                      color: '#121212'
+                    }}>{u.phoneNumber || "N/A"}</td>
+                    <td style={{ padding: '16px' }}>
+                      <span style={{
+                        padding: '6px 12px',
+                        borderRadius: '20px',
+                        fontSize: '0.85rem',
+                        fontWeight: '500',
+                        background: u.isActive 
+                          ? 'rgba(0, 200, 83, 0.1)' 
+                          : 'rgba(108, 117, 125, 0.1)',
+                        color: u.isActive ? '#00C853' : '#6C757D'
+                      }}>
+                        {u.isActive ? "✅ Active" : "⏸️ Inactive"}
+                      </span>
+                    </td>
+                    <td style={{ 
+                      padding: '16px',
+                      textAlign: 'center'
+                    }}>
+                      <div style={{ 
+                        display: 'flex', 
+                        gap: '8px', 
+                        justifyContent: 'center',
+                        flexWrap: 'wrap'
+                      }}>
+                        <Button
+                          variant="outline-info"
+                          size="sm"
+                          onClick={() => handleView(u)}
+                          style={{
+                            border: '2px solid #00B4D8',
+                            color: '#00B4D8',
+                            borderRadius: '8px',
+                            fontWeight: '500',
+                            padding: '6px 12px'
+                          }}
+                        >
+                          👁️ View
+                        </Button>
+                        <Button
+                          variant="outline-warning"
+                          size="sm"
+                          onClick={() => handleEdit(u)}
+                          style={{
+                            border: '2px solid #FFB703',
+                            color: '#FFB703',
+                            borderRadius: '8px',
+                            fontWeight: '500',
+                            padding: '6px 12px'
+                          }}
+                        >
+                          ✏️ Edit
+                        </Button>
+                        <Button
+                          variant={u.isActive ? "outline-secondary" : "outline-success"}
+                          size="sm"
+                          onClick={() => handleToggleStatus(u.id, u.isActive)}
+                          style={{
+                            border: u.isActive ? '2px solid #6C757D' : '2px solid #00C853',
+                            color: u.isActive ? '#6C757D' : '#00C853',
+                            borderRadius: '8px',
+                            fontWeight: '500',
+                            padding: '6px 12px'
+                          }}
+                        >
+                          {u.isActive ? "⏸️ Deactivate" : "▶️ Activate"}
+                        </Button>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => handleDelete(u.id)}
+                          style={{
+                            border: '2px solid #DC3545',
+                            color: '#DC3545',
+                            borderRadius: '8px',
+                            fontWeight: '500',
+                            padding: '6px 12px'
+                          }}
+                        >
+                          🗑️ Delete
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" style={{ 
+                    padding: '40px', 
+                    textAlign: 'center',
+                    color: '#6C757D'
+                  }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🚗</div>
+                    <h4 style={{ color: '#121212', marginBottom: '8px' }}>No EV Owners Found</h4>
+                    <p>No electric vehicle owners are registered in the system yet.</p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+        )}
+      </div>
 
       {/* View/Edit Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>{editMode ? "Edit EV Owner" : "EV Owner Details"}</Modal.Title>
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header style={{ 
+          background: 'linear-gradient(135deg, #1B263B 0%, #121212 100%)',
+          color: '#F9FAFB',
+          border: 'none'
+        }}>
+          <Modal.Title style={{ fontWeight: '600' }}>
+            {editMode ? "✏️ Edit EV Owner" : "👁️ EV Owner Details"}
+          </Modal.Title>
+          <button 
+            onClick={() => setShowModal(false)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#F9FAFB',
+              fontSize: '1.5rem',
+              cursor: 'pointer'
+            }}
+          >
+            ×
+          </button>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body style={{ padding: '24px', background: '#F9FAFB' }}>
           {selectedUser && (
             <Form>
               <Form.Group className="mb-3">
-                <Form.Label>NIC</Form.Label>
-                <Form.Control value={nic} readOnly />
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>First Name</Form.Label>
-                <Form.Control
-                  value={firstName}
-                  onChange={e => setFirstName(e.target.value)}
-                  readOnly={!editMode}
+                <Form.Label style={{ fontWeight: '600', color: '#121212' }}>NIC</Form.Label>
+                <Form.Control 
+                  value={nic} 
+                  readOnly 
+                  style={{
+                    padding: '12px',
+                    borderRadius: '8px',
+                    border: '2px solid #E5E7EB',
+                    background: '#FFFFFF'
+                  }}
                 />
               </Form.Group>
 
-              <Form.Group className="mb-3">
-                <Form.Label>Last Name</Form.Label>
-                <Form.Control
-                  value={lastName}
-                  onChange={e => setLastName(e.target.value)}
-                  readOnly={!editMode}
-                />
-              </Form.Group>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <Form.Group className="mb-3">
+                  <Form.Label style={{ fontWeight: '600', color: '#121212' }}>First Name</Form.Label>
+                  <Form.Control
+                    value={firstName}
+                    onChange={e => setFirstName(e.target.value)}
+                    readOnly={!editMode}
+                    style={{
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '2px solid #E5E7EB',
+                      background: '#FFFFFF'
+                    }}
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label style={{ fontWeight: '600', color: '#121212' }}>Last Name</Form.Label>
+                  <Form.Control
+                    value={lastName}
+                    onChange={e => setLastName(e.target.value)}
+                    readOnly={!editMode}
+                    style={{
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '2px solid #E5E7EB',
+                      background: '#FFFFFF'
+                    }}
+                  />
+                </Form.Group>
+              </div>
 
               <Form.Group className="mb-3">
-                <Form.Label>Email</Form.Label>
+                <Form.Label style={{ fontWeight: '600', color: '#121212' }}>Email</Form.Label>
                 <Form.Control
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   readOnly={!editMode}
+                  style={{
+                    padding: '12px',
+                    borderRadius: '8px',
+                    border: '2px solid #E5E7EB',
+                    background: '#FFFFFF'
+                  }}
                 />
               </Form.Group>
 
               <Form.Group className="mb-3">
-                <Form.Label>Phone Number</Form.Label>
+                <Form.Label style={{ fontWeight: '600', color: '#121212' }}>Phone Number</Form.Label>
                 <Form.Control
                   value={phoneNumber}
                   onChange={e => setPhoneNumber(e.target.value)}
                   readOnly={!editMode}
+                  style={{
+                    padding: '12px',
+                    borderRadius: '8px',
+                    border: '2px solid #E5E7EB',
+                    background: '#FFFFFF'
+                  }}
                 />
               </Form.Group>
 
               <Form.Group className="mb-3">
-                <Form.Label>Status</Form.Label>
+                <Form.Label style={{ fontWeight: '600', color: '#121212' }}>Status</Form.Label>
                 <Form.Control
-                  value={isActive ? "Active" : "Inactive"}
+                  value={isActive ? "✅ Active" : "⏸️ Inactive"}
                   readOnly
+                  style={{
+                    padding: '12px',
+                    borderRadius: '8px',
+                    border: '2px solid #E5E7EB',
+                    background: '#FFFFFF'
+                  }}
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label style={{ fontWeight: '600', color: '#121212' }}>Role</Form.Label>
+                <Form.Control
+                  value="🚗 EV Owner"
+                  readOnly
+                  style={{
+                    padding: '12px',
+                    borderRadius: '8px',
+                    border: '2px solid #E5E7EB',
+                    background: '#FFFFFF'
+                  }}
                 />
               </Form.Group>
             </Form>
           )}
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>Close</Button>
+        <Modal.Footer style={{ 
+          background: '#F9FAFB', 
+          border: 'none',
+          padding: '16px 24px 24px'
+        }}>
+          <Button 
+            variant="outline-secondary" 
+            onClick={() => setShowModal(false)}
+            style={{
+              border: '2px solid #6C757D',
+              color: '#6C757D',
+              borderRadius: '8px',
+              fontWeight: '500',
+              padding: '8px 20px'
+            }}
+          >
+            Close
+          </Button>
           {editMode && (
-            <Button variant="primary" onClick={handleSave}>Save Changes</Button>
+            <Button 
+              variant="primary" 
+              onClick={handleSave}
+              style={{
+                background: 'linear-gradient(135deg, #00C853 0%, #00B4D8 100%)',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: '600',
+                padding: '8px 24px'
+              }}
+            >
+              💾 Save Changes
+            </Button>
           )}
         </Modal.Footer>
       </Modal>
+
+      <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        
+        tr:hover {
+          background: rgba(0, 200, 83, 0.02) !important;
+          transform: translateY(-1px);
+        }
+        
+        .btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+      `}</style>
     </div>
   );
 }
