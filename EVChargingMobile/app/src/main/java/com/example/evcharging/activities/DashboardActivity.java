@@ -30,6 +30,10 @@ public class DashboardActivity extends AppCompatActivity {
     private NotificationsFragment notificationsFragment;
     private Fragment activeFragment;
 
+    /**
+     * Called when the activity is first created.
+     * Initializes authentication, UI elements, fragments, and bottom navigation.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,6 +80,10 @@ public class DashboardActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Initializes all fragments using the safe newInstance() pattern.
+     * Adds all fragments to the FragmentManager and sets the initial active fragment.
+     */
     private void setupFragments() {
         // 2. Use the safe `newInstance()` pattern we created before for ALL fragments.
         // This ensures the token is always passed correctly.
@@ -97,6 +105,10 @@ public class DashboardActivity extends AppCompatActivity {
         activeFragment = dashboardFragment;
     }
 
+    /**
+     * Handles bottom navigation item selection.
+     * Switches the visible fragment based on the selected item.
+     */
     private boolean onNavigationItemSelected(@NonNull MenuItem item) {
         Fragment selectedFragment = null;
         int itemId = item.getItemId();
@@ -119,6 +131,10 @@ public class DashboardActivity extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Navigates the user back to the login screen in case of authentication failure.
+     * Clears the activity stack to prevent returning to Dashboard without login.
+     */
     private void navigateToLogin() {
         Intent intent = new Intent(this, LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

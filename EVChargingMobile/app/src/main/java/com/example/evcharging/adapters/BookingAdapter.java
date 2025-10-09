@@ -40,12 +40,14 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
     private final String authToken;
     private Context context; // Keep context for resources
 
+    // Constructor: Initializes the adapter with booking data, API service, and auth token
     public BookingAdapter(List<BookingApi> bookingApiList, ApiService apiService, String authToken) {
         this.bookingApiList = bookingApiList;
         this.apiService = apiService;
         this.authToken = authToken;
     }
 
+    // Inflates the item layout and creates a ViewHolde
     @NonNull
     @Override
     public BookingViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -54,6 +56,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         return new BookingViewHolder(view);
     }
 
+    // Binds data to the ViewHolder and sets click listeners
     @Override
     public void onBindViewHolder(@NonNull BookingViewHolder holder, int position) {
         BookingApi bookingApi = bookingApiList.get(position);
@@ -69,11 +72,13 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         });
     }
 
+     // Returns the number of items in the list
     @Override
     public int getItemCount() {
         return bookingApiList.size();
     }
 
+    // Cancels a booking via the API and updates UI on success
     private void cancelBooking(final BookingApi bookingApi, final int position) {
         if (position == RecyclerView.NO_POSITION) return;
 
@@ -98,6 +103,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         });
     }
 
+    // Generates a QR code bitmap from booking ID and sets it in the ImageView
     private void generateAndSetQrCode(ImageView imageView, String bookingId) {
         QRCodeWriter writer = new QRCodeWriter();
         try {

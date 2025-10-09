@@ -15,6 +15,10 @@ public class CustomScannerActivity extends AppCompatActivity {
     private CaptureManager capture;
     private DecoratedBarcodeView barcodeScannerView;
 
+    /**
+     * Called when the activity is first created.
+     * Initializes the barcode scanner view and sets up the back button functionality.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,12 +36,20 @@ public class CustomScannerActivity extends AppCompatActivity {
         capture.decode();
     }
 
+    /**
+     * Called when the activity is resumed.
+     * Resumes the barcode scanner capture process.
+     */
     @Override
     protected void onResume() {
         super.onResume();
         capture.onResume();
     }
 
+    /**
+     * Called when the activity is paused.
+     * Pauses the barcode scanner capture process.
+     */
     @Override
     protected void onPause() {
         super.onPause();
@@ -45,6 +57,10 @@ public class CustomScannerActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * Called when the activity is destroyed.
+     * Releases resources used by the CaptureManager.
+     */
 
     @Override
     protected void onDestroy() {
@@ -52,6 +68,10 @@ public class CustomScannerActivity extends AppCompatActivity {
         capture.onDestroy();
     }
 
+    /**
+     * Called to save the instance state of the activity.
+     * Ensures the CaptureManager state is preserved during configuration changes.
+     */
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);

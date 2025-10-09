@@ -27,6 +27,10 @@ public class RegisterActivity extends AppCompatActivity {
     Button btnRegister;
     ApiService api;
 
+    /**
+     * Called when the activity is first created.
+     * Initializes UI components, API service, and sets click listener for registration button.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +49,12 @@ public class RegisterActivity extends AppCompatActivity {
         btnRegister.setOnClickListener(v -> registerUser());
     }
 
+    /**
+     * Handles the user registration process.
+     * 1. Validates input fields locally.
+     * 2. Sends registration data to the backend API.
+     * 3. Stores the registered user in local database upon success.
+     */
     private void registerUser() {
         String nic = etNic.getText().toString().trim();
         String firstName = etFirstName.getText().toString().trim();

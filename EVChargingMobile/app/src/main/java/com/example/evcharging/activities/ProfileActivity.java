@@ -26,6 +26,11 @@ public class ProfileActivity extends AppCompatActivity {
     ApiService api;
     String authToken;
 
+    /**
+     * Called when the activity is first created.
+     * Initializes UI components, API service, authentication token,
+     * and sets up click listeners for profile update and deactivation.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,6 +51,10 @@ public class ProfileActivity extends AppCompatActivity {
         btnDeactivate.setOnClickListener(v -> showDeactivationConfirmDialog());
     }
 
+    /**
+     * Fetches the current user's profile from the backend API.
+     * Populates the UI fields with the retrieved data.
+     */
     private void fetchProfile() {
         api.getMyProfile(authToken).enqueue(new Callback<User>() {
             @Override
@@ -67,6 +76,10 @@ public class ProfileActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Updates the user's profile with the values entered in the UI.
+     * Sends the updated profile to the backend API.
+     */
     private void updateProfile() {
         String firstName = etProfileFirstName.getText().toString();
         String lastName = etProfileLastName.getText().toString();
@@ -95,6 +108,9 @@ public class ProfileActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Displays a confirmation dialog to the user before deactivating their account.
+     */
     private void showDeactivationConfirmDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Deactivate Account")
@@ -104,6 +120,10 @@ public class ProfileActivity extends AppCompatActivity {
                 .show();
     }
 
+    /**
+     * Deactivates the user's account via the backend API.
+     * Clears stored authentication data and navigates back to the login screen upon success.
+     */
     private void deactivateAccount() {
         api.deactivateMyAccount(authToken).enqueue(new Callback<Void>() {
             @Override

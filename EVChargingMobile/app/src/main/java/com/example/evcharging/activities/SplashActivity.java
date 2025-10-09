@@ -23,6 +23,10 @@ import retrofit2.Response;
 
 public class SplashActivity extends AppCompatActivity {
 
+    /**
+     * Called when the activity is first created.
+     * Displays the splash screen for a short duration and then checks user authentication status.
+     */
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,6 +36,11 @@ public class SplashActivity extends AppCompatActivity {
         new Handler(Looper.getMainLooper()).postDelayed(this::checkUserStatus, 1500);
     }
 
+    /**
+     * Checks if the user has a saved authentication token.
+     * If no token exists, navigates to login.
+     * If a token exists, fetches the user profile to determine the role.
+     */
     private void checkUserStatus() {
         SharedPreferences prefs = getSharedPreferences(LoginActivity.PREFS_NAME, Context.MODE_PRIVATE);
         String authToken = prefs.getString(LoginActivity.AUTH_TOKEN_KEY, null);
@@ -45,6 +54,10 @@ public class SplashActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Fetches the user's profile from the backend to verify the token and retrieve the user role.
+     * The authentication token of the user.
+     */
     private void fetchProfileAndNavigate(String authToken) {
         ApiService apiService = ApiClient.getApiService();
         apiService.getMyProfile(authToken).enqueue(new Callback<User>() {

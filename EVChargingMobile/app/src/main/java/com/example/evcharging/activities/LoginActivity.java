@@ -33,6 +33,10 @@ public class LoginActivity extends AppCompatActivity {
     public static final String AUTH_TOKEN_KEY = "AUTH_TOKEN_KEY";
     public static final String STATION_ID_KEY = "STATION_ID_KEY"; // Key for saving stationId
 
+    /**
+     * Called when the activity is first created.
+     * Initializes UI components, API service, and button click listeners.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +53,10 @@ public class LoginActivity extends AppCompatActivity {
         tvRegister.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, RegisterActivity.class)));
     }
 
+    /**
+     * Collects user input for email and password.
+     * Validates input and triggers API login if fields are not empty.
+     */
     private void doLogin() {
         String email = etEmail.getText().toString().trim();
         String pwd = etPassword.getText().toString().trim();
@@ -60,6 +68,10 @@ public class LoginActivity extends AppCompatActivity {
         loginViaApi(email, pwd);
     }
 
+    /**
+     * Calls the backend API to perform login using provided credentials.
+     * Handles response by saving auth token and navigating to the correct dashboard based on user role.
+     */
     private void loginViaApi(String email, String password) {
         Map<String, String> body = new HashMap<>();
         body.put("email", email);
@@ -107,6 +119,9 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Saves the authentication token and stationId (if available) in SharedPreferences.
+     */
     private void saveAuthData(String token, String stationId) {
         SharedPreferences.Editor editor = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit();
         editor.putString(AUTH_TOKEN_KEY, token);
@@ -118,6 +133,10 @@ public class LoginActivity extends AppCompatActivity {
         editor.apply();
     }
 
+    /**
+     * Navigates the user to the correct dashboard based on their role.
+     * Operators (role 1) go to OperatorDashboard, others go to DashboardActivity.
+     */
     private void navigateToDashboardByRole(String authToken, String stationId, int role) {
         Intent intent;
         if (role == 1) { // Role 1 is Operator

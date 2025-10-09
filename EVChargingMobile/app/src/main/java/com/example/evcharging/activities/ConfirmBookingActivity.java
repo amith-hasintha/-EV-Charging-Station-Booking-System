@@ -23,6 +23,10 @@ public class ConfirmBookingActivity extends AppCompatActivity {
     ApiService api;
     String authToken, bookingId;
 
+    /**
+     * Called when the activity is first created.
+     * Initializes UI components, retrieves intent extras, and fetches booking details.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +46,11 @@ public class ConfirmBookingActivity extends AppCompatActivity {
 
         btnConfirmBooking.setOnClickListener(v -> confirmBooking());
     }
+
+    /**
+     * Fetches booking details from the backend using the booking ID and auth token.
+     * Updates UI fields based on the response and sets button state based on booking status.
+     */
 
     private void fetchBookingDetails() {
         api.getBookingById(authToken, bookingId).enqueue(new Callback<BookingApi>() {
@@ -99,6 +108,10 @@ public class ConfirmBookingActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * Confirms the booking by calling the backend API.
+     * Updates the UI based on the success or failure of the confirmation request.
+     */
     private void confirmBooking() {
         api.confirmBooking(authToken, bookingId).enqueue(new Callback<Void>() {
             @Override

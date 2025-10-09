@@ -51,6 +51,11 @@ public class OperatorDashboardActivity extends AppCompatActivity {
                 bottomNavigationView.setSelectedItemId(R.id.navigation_operator_bookings);
             });
 
+    /**
+     * Called when the activity is first created.
+     * Initializes authentication, toolbar, bottom navigation, and fragments.
+     * Restores fragments on configuration change.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,6 +92,10 @@ public class OperatorDashboardActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Initializes and adds the operator and notification fragments.
+     * Sets the initial active fragment.
+     */
     private void setupFragments() {
         // 1. Retrieve the token and stationId ONCE from the Intent.
         String stationId = getIntent().getStringExtra("stationId");
@@ -106,6 +115,10 @@ public class OperatorDashboardActivity extends AppCompatActivity {
         activeFragment = operatorBookingsFragment;
     }
 
+    /**
+     * Handles bottom navigation item clicks.
+     * Switches between operator bookings, notifications, and launches QR scanner.
+     */
     private boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
 
@@ -132,6 +145,10 @@ public class OperatorDashboardActivity extends AppCompatActivity {
 
     // --- THIS IS THE FIX FOR THE ORIENTATION ---
     // Replace the entire launchQrScanner method with this new version
+    /**
+     * Launches the custom QR scanner with orientation lock and other options.
+     * Ensures the scanned booking ID is sent to ConfirmBookingActivity.
+     */
     private void launchQrScanner() {
         ScanOptions options = new ScanOptions();
         options.setOrientationLocked(true); // Locks orientation to prevent rotation issues
@@ -145,6 +162,10 @@ public class OperatorDashboardActivity extends AppCompatActivity {
         barcodeLauncher.launch(options);
     }
 
+    /**
+     * Logs out the user by clearing stored auth token and stationId.
+     * Redirects to LoginActivity and clears the back stack.
+     */
     private void logoutUser() {
         SharedPreferences prefs = getSharedPreferences(LoginActivity.PREFS_NAME, Context.MODE_PRIVATE);
         prefs.edit().remove(LoginActivity.AUTH_TOKEN_KEY).remove(LoginActivity.STATION_ID_KEY).apply();
