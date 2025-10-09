@@ -1,43 +1,56 @@
 package com.example.evcharging.fragments;
 
 import android.os.Bundle;
-import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.evcharging.R;
 import com.example.evcharging.adapters.BookingAdapter;
 import com.example.evcharging.api.ApiClient;
 import com.example.evcharging.api.ApiService;
 import com.example.evcharging.models.BookingApi;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MyBookingsFragment extends Fragment {
 
+    private static final String TAG = "MyBookingsFragment";
+    private static final String ARG_TOKEN = "ARG_TOKEN";
+
     private RecyclerView rvMyBookings;
-    private BookingAdapter bookingAdapter;
-    private List<BookingApi> bookingsList = new ArrayList<>();
+    private BookingAdapter adapter;
+    private final List<BookingApi> bookingList = new ArrayList<>();
     private ApiService apiService;
     private String authToken;
+
+    public static MyBookingsFragment newInstance(String token) {
+        MyBookingsFragment fragment = new MyBookingsFragment();
+        Bundle args = new Bundle();
+        args.putString(ARG_TOKEN, token);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            authToken = getArguments().getString(ARG_TOKEN);
+        }
+    }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Use the simple layout file we created for the fragment
         return inflater.inflate(R.layout.fragment_my_bookings, container, false);
     }
 
@@ -45,60 +58,41 @@ public class MyBookingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Get the token passed from the parent activity
-        if (getArguments() != null) {
-            authToken = getArguments().getString("token");
-        }
-
         apiService = ApiClient.getApiService();
         rvMyBookings = view.findViewById(R.id.rvMyBookings);
-
         setupRecyclerView();
-
-        // Check for token after setup
-        if (TextUtils.isEmpty(authToken)) {
-            Toast.makeText(getContext(), "Authentication Error. Please log in again.", Toast.LENGTH_LONG).show();
-            // Optionally, navigate to login
-        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        // Fetch data every time the fragment becomes visible.
-        // This ensures the booking list is always fresh.
-        if (!TextUtils.isEmpty(authToken)) {
-            fetchMyBookings();
-        }
+        fetchMyBookings();
     }
 
     private void setupRecyclerView() {
         rvMyBookings.setLayoutManager(new LinearLayoutManager(getContext()));
-        // *** THE FIX: Initialize the adapter with all required arguments ***
-        bookingAdapter = new BookingAdapter(bookingsList, apiService, authToken);
-        rvMyBookings.setAdapter(bookingAdapter);
+        // --- START: THIS IS THE FIX ---
+        // The constructor only takes 3 arguments. The 4th one has been removed.
+        adapter = new BookingAdapter(bookingList, apiService, authToken);
+        // --- END: FIX ---
+        rvMyBookings.setAdapter(adapter);
     }
 
     private void fetchMyBookings() {
-        // This method correctly calls the /api/bookings/my-bookings endpoint
+        if (authToken == null) return;
         apiService.getMyBookings(authToken).enqueue(new Callback<List<BookingApi>>() {
             @Override
-            public void onResponse(Call<List<BookingApi>> call, Response<List<BookingApi>> response) {
-                // Check if the fragment is still attached to the activity
+            public void onResponse(@NonNull Call<List<BookingApi>> call, @NonNull Response<List<BookingApi>> response) {
                 if (isAdded() && response.isSuccessful() && response.body() != null) {
-                    bookingsList.clear();
-                    bookingsList.addAll(response.body());
-                    bookingAdapter.notifyDataSetChanged();
-                } else if (isAdded()) {
-                    Toast.makeText(getContext(), "Failed to load bookings. Error: " + response.code(), Toast.LENGTH_SHORT).show();
+                    bookingList.clear();
+                    bookingList.addAll(response.body());
+                    adapter.notifyDataSetChanged();
                 }
             }
 
             @Override
-            public void onFailure(Call<List<BookingApi>> call, Throwable t) {
-                if (isAdded()) {
-                    Toast.makeText(getContext(), "Network error while fetching bookings: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                }
+            public void onFailure(@NonNull Call<List<BookingApi>> call, @NonNull Throwable t) {
+                Log.e(TAG, "Failed to fetch bookings: " + t.getMessage());
             }
         });
     }
