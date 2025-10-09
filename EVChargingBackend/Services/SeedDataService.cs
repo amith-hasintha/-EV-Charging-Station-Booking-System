@@ -8,6 +8,8 @@
 
 using EVChargingBackend.Models;
 using EVChargingBackend.Repositories;
+using EVChargingBackend.Config;
+using MongoDB.Driver;
 
 namespace EVChargingBackend.Services
 {
@@ -19,6 +21,7 @@ namespace EVChargingBackend.Services
         private readonly IUserRepository _userRepository;
         private readonly IChargingStationRepository _stationRepository;
         private readonly IBookingRepository _bookingRepository;
+        private readonly MongoDbContext _context;
         private readonly ILogger<SeedDataService> _logger;
 
         /// <summary>
@@ -27,16 +30,19 @@ namespace EVChargingBackend.Services
         /// <param name="userRepository">User repository</param>
         /// <param name="stationRepository">Station repository</param>
         /// <param name="bookingRepository">Booking repository</param>
+        /// <param name="context">MongoDB context</param>
         /// <param name="logger">Logger for service operations</param>
         public SeedDataService(
             IUserRepository userRepository,
             IChargingStationRepository stationRepository,
             IBookingRepository bookingRepository,
+            MongoDbContext context,
             ILogger<SeedDataService> logger)
         {
             _userRepository = userRepository;
             _stationRepository = stationRepository;
             _bookingRepository = bookingRepository;
+            _context = context;
             _logger = logger;
         }
 
@@ -48,15 +54,26 @@ namespace EVChargingBackend.Services
         {
             try
             {
-                // Check if data already exists
-                var existingUsers = await _userRepository.GetAllAsync();
-                if (existingUsers.Any())
-                {
-                    _logger.LogInformation("Data already exists, skipping seed");
-                    return;
-                }
-
                 _logger.LogInformation("Starting database seeding...");
+
+                // Handle potential schema mismatch by clearing corrupted collections
+                try
+                {
+                    var existingUsers = await _userRepository.GetAllAsync();
+                    if (existingUsers.Any())
+                    {
+                        _logger.LogInformation("Valid data already exists, skipping seed");
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Schema mismatch detected. Clearing collections and reseeding...");
+                    
+                    // Clear potentially corrupted collections
+                    await ClearCorruptedCollectionsAsync();
+                    _logger.LogInformation("Cleared corrupted collections. Proceeding with fresh seed...");
+                }
 
                 // Seed Users
                 await SeedUsersAsync();
@@ -72,7 +89,7 @@ namespace EVChargingBackend.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred during database seeding");
-                throw;
+                throw new InvalidOperationException("An error occurred in SeedDataService.SeedDataAsync. See inner exception for details.", ex);
             }
         }
 
@@ -282,6 +299,30 @@ namespace EVChargingBackend.Services
             {
                 await _bookingRepository.CreateAsync(booking);
                 _logger.LogInformation("Seeded booking: {BookingId} for station {StationId}", booking.Id, booking.StationId);
+            }
+        }
+
+        /// <summary>
+        /// Clears corrupted collections that have schema mismatches
+        /// </summary>
+        private async Task ClearCorruptedCollectionsAsync()
+        {
+            try
+            {
+                _logger.LogWarning("Clearing potentially corrupted MongoDB collections...");
+                
+                // Drop collections that might have schema issues
+                await _context.Database.DropCollectionAsync("Users");
+                await _context.Database.DropCollectionAsync("ChargingStations");
+                await _context.Database.DropCollectionAsync("Bookings");
+                await _context.Database.DropCollectionAsync("Notifications");
+                
+                _logger.LogInformation("Successfully cleared corrupted collections");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error clearing corrupted collections");
+                // Continue anyway - collections might not exist
             }
         }
     }

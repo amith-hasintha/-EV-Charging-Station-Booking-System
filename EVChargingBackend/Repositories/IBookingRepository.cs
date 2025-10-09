@@ -85,5 +85,13 @@ namespace EVChargingBackend.Repositories
         /// <param name="stationId">Station ID</param>
         /// <returns>Count of active bookings</returns>
         Task<long> GetActiveBookingCountAsync(string stationId);
+
+        /// <summary>
+        /// Gets upcoming confirmed bookings within a time range (for reminders)
+        /// </summary>
+        /// <param name="fromTime">Start time range</param>
+        /// <param name="toTime">End time range</param>
+        /// <returns>List of upcoming confirmed bookings</returns>
+        Task<List<Booking>> GetUpcomingConfirmedBookingsAsync(DateTime fromTime, DateTime toTime);
     }
 }

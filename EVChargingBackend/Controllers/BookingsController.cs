@@ -50,7 +50,7 @@ namespace EVChargingBackend.Controllers
             
             if (string.IsNullOrEmpty(ownerNic))
             {
-                return BadRequest("Invalid user token - NIC not found");
+                return BadRequest("Invalid user token");
             }
 
             _logger.LogInformation("Creating booking for station {StationId} by user {OwnerNIC}", createDto.StationId, ownerNic);
@@ -208,6 +208,28 @@ namespace EVChargingBackend.Controllers
             }
             
             return Ok(new { message = "Booking cancelled successfully" });
+        }
+
+        /// <summary>
+        /// Cancels booking by operator (Station Operator and Backoffice only)
+        /// </summary>
+        /// <param name="id">Booking ID</param>
+        /// <param name="request">Cancellation request with reason</param>
+        /// <returns>Success status</returns>
+        [HttpPost("{id}/cancel-by-operator")]
+        [Authorize(Roles = $"{nameof(UserRole.Backoffice)},{nameof(UserRole.StationOperator)}")]
+        public async Task<ActionResult> CancelBookingByOperator(string id, [FromBody] CancelBookingByOperatorDto request)
+        {
+            _logger.LogInformation("Operator cancelling booking: {BookingId}, Reason: {Reason}", id, request.Reason);
+            
+            var result = await _bookingService.CancelBookingByOperatorAsync(id, request.Reason);
+            
+            if (!result)
+            {
+                return NotFound("Booking not found");
+            }
+            
+            return Ok(new { message = "Booking cancelled successfully by operator" });
         }
     }
 }

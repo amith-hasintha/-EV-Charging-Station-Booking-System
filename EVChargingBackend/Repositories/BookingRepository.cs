@@ -178,5 +178,22 @@ namespace EVChargingBackend.Repositories
 
             return await _bookings.CountDocumentsAsync(filter);
         }
+
+        /// <summary>
+        /// Gets upcoming confirmed bookings within a time range (for reminders)
+        /// </summary>
+        /// <param name="fromTime">Start time range</param>
+        /// <param name="toTime">End time range</param>
+        /// <returns>List of upcoming confirmed bookings</returns>
+        public async Task<List<Booking>> GetUpcomingConfirmedBookingsAsync(DateTime fromTime, DateTime toTime)
+        {
+            var filter = Builders<Booking>.Filter.And(
+                Builders<Booking>.Filter.Eq(b => b.Status, BookingStatus.Confirmed),
+                Builders<Booking>.Filter.Gte(b => b.StartTime, fromTime),
+                Builders<Booking>.Filter.Lte(b => b.StartTime, toTime)
+            );
+
+            return await _bookings.Find(filter).ToListAsync();
+        }
     }
 }
