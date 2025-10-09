@@ -13,17 +13,20 @@ import com.example.evcharging.fragments.CreateBookingFragment;
 import com.example.evcharging.fragments.DashboardFragment;
 import com.example.evcharging.fragments.MyBookingsFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.example.evcharging.fragments.NotificationsFragment;
 
 public class DashboardActivity extends AppCompatActivity {
 
     private String authToken;
     private final FragmentManager fm = getSupportFragmentManager();
 
-    // Create fragment instances ONCE.
+
+    // Add the new fragment instance
     private final DashboardFragment dashboardFragment = new DashboardFragment();
     private final CreateBookingFragment createBookingFragment = new CreateBookingFragment();
     private final MyBookingsFragment myBookingsFragment = new MyBookingsFragment();
-    private Fragment activeFragment = dashboardFragment; // Keep track of the current fragment.
+    private final NotificationsFragment notificationsFragment = new NotificationsFragment(); // <-- ADD THIS
+    private Fragment activeFragment = dashboardFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,13 +66,16 @@ public class DashboardActivity extends AppCompatActivity {
         dashboardFragment.setArguments(bundle);
         createBookingFragment.setArguments(bundle);
         myBookingsFragment.setArguments(bundle);
+        notificationsFragment.setArguments(bundle); // <-- Pass arguments to new fragment
 
+        fm.beginTransaction().add(R.id.fragment_container, notificationsFragment, "4").hide(notificationsFragment).commit(); // <-- Add new fragment
         fm.beginTransaction().add(R.id.fragment_container, myBookingsFragment, "3").hide(myBookingsFragment).commit();
         fm.beginTransaction().add(R.id.fragment_container, createBookingFragment, "2").hide(createBookingFragment).commit();
         fm.beginTransaction().add(R.id.fragment_container, dashboardFragment, "1").commit();
     }
 
     private boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        // Find the selected fragment, defaulting to null
         Fragment selectedFragment = null;
         int itemId = item.getItemId();
 
@@ -79,14 +85,16 @@ public class DashboardActivity extends AppCompatActivity {
             selectedFragment = createBookingFragment;
         } else if (itemId == R.id.navigation_my_bookings) {
             selectedFragment = myBookingsFragment;
+        } else if (itemId == R.id.navigation_notifications) { // <-- Handle new item
+            selectedFragment = notificationsFragment;
         }
 
-        if (selectedFragment != null) {
+        // If a valid fragment was selected, show it
+        if (selectedFragment != null && selectedFragment != activeFragment) {
             fm.beginTransaction().hide(activeFragment).show(selectedFragment).commit();
             activeFragment = selectedFragment;
-            return true;
         }
-        return false;
+        return true; // Always return true to show item as selected
     }
 
     private void navigateToLogin() {

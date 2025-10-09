@@ -1,15 +1,16 @@
 package com.example.evcharging.activities;
 
 import android.os.Bundle;
-import android.view.View;import android.widget.Button;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.example.evcharging.R;
 import com.example.evcharging.api.ApiClient;
 import com.example.evcharging.api.ApiService;
-import com.example.evcharging.models.Booking;
+import com.example.evcharging.models.BookingApi;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -43,33 +44,60 @@ public class ConfirmBookingActivity extends AppCompatActivity {
     }
 
     private void fetchBookingDetails() {
-        api.getBookingById(authToken, bookingId).enqueue(new Callback<Booking>() {
+        api.getBookingById(authToken, bookingId).enqueue(new Callback<BookingApi>() {
             @Override
-            public void onResponse(Call<Booking> call, Response<Booking> response) {
+            public void onResponse(Call<BookingApi> call, Response<BookingApi> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    Booking booking = response.body();
-                    tvConfirmBookingId.setText("Booking ID: " + booking.id);
-                    tvConfirmStationId.setText("Station ID: " + booking.stationId);
-                    tvConfirmStatus.setText("Status: " + booking.status);
+                    BookingApi bookingApi = response.body();
+                    tvConfirmBookingId.setText("Booking ID: " + bookingApi.id);
+                    tvConfirmStationId.setText("Station ID: " + bookingApi.stationId);
 
-                    // Only allow confirmation if status is "approved"
-                    if ("approved".equalsIgnoreCase(booking.status)) {
+                    // --- THIS IS THE FIX ---
+                    // Backend Enum: Active=0, Confirmed=1
+                    int status = bookingApi.status;
+                    String statusText = "UNKNOWN";
+
+                    // Set status text and color based on the numeric status
+                    switch (status) {
+                        case 0: // Active
+                            statusText = "ACTIVE";
+                            tvConfirmStatus.setTextColor(ContextCompat.getColor(ConfirmBookingActivity.this, R.color.orange_soda));
+                            break;
+                        case 1: // Confirmed
+                            statusText = "CONFIRMED";
+                            tvConfirmStatus.setTextColor(ContextCompat.getColor(ConfirmBookingActivity.this, R.color.emerald_green));
+                            break;
+                        case 3: // Cancelled
+                            statusText = "CANCELLED";
+                            tvConfirmStatus.setTextColor(ContextCompat.getColor(ConfirmBookingActivity.this, R.color.red_error));
+                            break;
+                        default:
+                            tvConfirmStatus.setTextColor(android.graphics.Color.GRAY);
+                            break;
+                    }
+                    tvConfirmStatus.setText("Status: " + statusText);
+
+
+                    // Only allow confirmation if the booking has been approved by an operator (status 1)
+                    if (status == 1) { // <-- Compare integers, not strings
                         btnConfirmBooking.setEnabled(true);
                     } else {
                         btnConfirmBooking.setEnabled(false);
-                        btnConfirmBooking.setText("Cannot Confirm (Status: " + booking.status + ")");
+                        btnConfirmBooking.setText("Cannot Confirm (Status: " + statusText + ")");
                     }
+
                 } else {
                     Toast.makeText(ConfirmBookingActivity.this, "Failed to fetch booking details", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<Booking> call, Throwable t) {
+            public void onFailure(Call<BookingApi> call, Throwable t) {
                 Toast.makeText(ConfirmBookingActivity.this, "Network Error", Toast.LENGTH_SHORT).show();
             }
         });
     }
+
 
     private void confirmBooking() {
         api.confirmBooking(authToken, bookingId).enqueue(new Callback<Void>() {
