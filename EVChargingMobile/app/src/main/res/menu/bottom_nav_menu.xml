@@ -17,4 +17,10 @@
         android:icon="@drawable/ic_view_list"
         android:title="My Bookings"/>
 
+    <!-- ADD THIS NEW ITEM -->
+    <item
+        android:id="@+id/navigation_notifications"
+        android:icon="@drawable/ic_notifications"
+        android:title="Notifications" />
+
 </menu>
